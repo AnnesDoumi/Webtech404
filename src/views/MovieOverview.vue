@@ -1,6 +1,6 @@
 <template>
   <div class="movie-overview">
-    <h1>Filme Übersicht</h1>
+    <h1 style="color:black">Filme Übersicht</h1>
     <div class="movie-list">
       <div v-for="movie in movies" :key="movie.id" class="movie-card">
         <router-link :to="{ name: 'movie-detail', params: { id: movie.id }}">
