@@ -43,6 +43,7 @@ export default {
   background-color: #141414;
   padding: 10px 20px;
   color: #fff;
+
 }
 nav ul {
   display: flex;

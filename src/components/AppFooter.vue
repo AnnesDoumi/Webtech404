@@ -19,9 +19,10 @@ export default {
 <style scoped>
 .app-footer {
   background-color: #141414;
-  padding: 10px;
+  padding: 20px;
   text-align: center;
   color: #fff;
+
 }
 nav ul {
   list-style-type: none;

@@ -1,7 +1,7 @@
 <template>
   <div class="impressum">
-    <h1>Impressum</h1>
-    <p>Hier stehen rechtliche Informationen.</p>
+    <h1 style="color:black">Impressum</h1>
+    <p style="color:black">Hier stehen rechtliche Informationen.</p>
   </div>
 </template>
 
