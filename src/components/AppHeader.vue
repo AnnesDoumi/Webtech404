@@ -8,32 +8,38 @@
         <li><router-link to="/kontakt">Kontakt</router-link></li>
       </ul>
     </nav>
-    <div class="search">
-      <input
-          type="text"
-          placeholder="Search for movies..."
-          v-model="searchTerm"
-          @input="searchMovies"
-      />
+    <div class="user-info">
+      <span v-if="isLoggedIn">Eingeloggt als: {{ username }}</span>
+      <button v-if="isLoggedIn" @click="logout">Logout</button>
+      <router-link v-else to="/login">Login</router-link>
     </div>
   </header>
 </template>
 
 <script>
 export default {
-  name: "AppHeader",
   data() {
     return {
-      searchTerm: "",
+      username: localStorage.getItem('username'),
     };
   },
+  computed: {
+    isLoggedIn() {
+      return !!localStorage.getItem('token');
+    },
+  },
   methods: {
-    searchMovies() {
-      this.$router.push({ name: "search", query: { q: this.searchTerm } });
+    logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      this.username = null;
+      this.$router.push('/');
     },
   },
 };
 </script>
+
+
 
 <style scoped>
 .app-header {
