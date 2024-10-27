@@ -5,6 +5,8 @@ import Impressum from '../views/Impressum.vue';
 import Kontakt from '../views/Kontakt.vue';
 import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
+import Favorites from '../views/Favorites.vue';
+import Ranking from '../views/Ranking.vue';
 
 const routes = [
     { path: '/', name: 'home', component: MovieOverview },
@@ -13,6 +15,8 @@ const routes = [
     { path: '/kontakt', name: 'kontakt', component: Kontakt },
     { path: '/login', name: 'login', component: Login },
     { path: '/register', name: 'register', component: Register },
+    { path: '/favorites', name: 'favorites', component: Favorites },
+    { path: '/ranking', name: 'ranking', component: Ranking },
 ];
 
 const router = createRouter({

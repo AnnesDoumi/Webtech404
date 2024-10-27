@@ -1,9 +1,28 @@
 <template>
   <div class="movie-detail">
-    <h1 class="movie-title">{{ movie.title }}</h1>
-    <img :src="getMoviePoster(movie.poster_path)" alt="Movie Poster" />
-    <p class="movie-description">{{ movie.overview }}</p>
-    <button @click="addFavorite">Zu Favoriten hinzufügen</button>
+    <img :src="getMoviePoster(movie.backdrop_path)" alt="Backdrop" class="movie-backdrop" />
+    <div class="movie-content">
+      <h1 class="movie-title">{{ movie.title }}</h1>
+      <p class="movie-tagline">{{ movie.tagline }}</p>
+      <p class="movie-description">{{ movie.overview }}</p>
+
+      <!-- Zusätzliche Filmdetails -->
+      <div class="movie-details">
+        <p><strong>Veröffentlichungsdatum:</strong> {{ movie.release_date }}</p>
+        <p><strong>Bewertung:</strong> {{ movie.vote_average }} / 10 ({{ movie.vote_count }} Stimmen)</p>
+        <p><strong>Originalsprache:</strong> {{ movie.original_language ? movie.original_language.toUpperCase() : 'N/A' }}</p>
+
+        <div v-if="movie.production_companies.length" class="production-companies">
+          <h3>Produktionsfirmen:</h3>
+          <div v-for="company in movie.production_companies" :key="company.id" class="company">
+            <img v-if="company.logo_path" :src="getCompanyLogo(company.logo_path)" :alt="company.name" />
+            <span>{{ company.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="favorite-button" @click="addFavorite">Zu Favoriten hinzufügen</button>
+    </div>
   </div>
 </template>
 
@@ -11,17 +30,29 @@
 export default {
   data() {
     return {
-      movie: {},
+      movie: {
+        production_companies: []
+      },
       isLoggedIn: !!localStorage.getItem('token'),
     };
   },
   async mounted() {
-    const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-    const response = await fetch(`https://api.themoviedb.org/3/movie/${this.$route.params.id}?api_key=${apiKey}`);
-    this.movie = await response.json();
+    await this.loadMovieData();
   },
   methods: {
+    async loadMovieData() {
+      const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+      try {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${this.$route.params.id}?api_key=${apiKey}`);
+        this.movie = await response.json();
+      } catch (error) {
+        console.error("Fehler beim Laden der Filmdaten:", error);
+      }
+    },
     getMoviePoster(path) {
+      return `https://image.tmdb.org/t/p/w500${path}`;
+    },
+    getCompanyLogo(path) {
       return `https://image.tmdb.org/t/p/w500${path}`;
     },
     async addFavorite() {
@@ -51,18 +82,79 @@ export default {
 
 <style scoped>
 .movie-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #1e1e1e;
+  color: #f5f5f5;
   padding: 20px;
-  color: #333; /* Ändert die Standardfarbe des Texts */
 }
+
+.movie-backdrop {
+  width: 100%;
+  max-width: 1200px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.movie-content {
+  max-width: 800px;
+  text-align: left;
+}
+
 .movie-title {
-  font-size: 2rem;
-  color: #444; /* Farbe für den Titel */
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin: 10px 0;
 }
+
+.movie-tagline {
+  font-style: italic;
+  color: #aaaaaa;
+  margin-bottom: 20px;
+}
+
 .movie-description {
-  font-size: 1rem;
-  color: #666; /* Farbe für die Beschreibung */
+  margin-bottom: 20px;
+  color: #cccccc;
 }
-button {
-  margin-top: 15px;
+
+.movie-details {
+  font-size: 1rem;
+  color: #dddddd;
+  margin-top: 20px;
+}
+
+.production-companies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.company {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+}
+
+.company img {
+  height: 30px;
+}
+
+.favorite-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #646cff;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.favorite-button:hover {
+  background-color: #535bf2;
 }
 </style>

@@ -22,6 +22,7 @@ export default {
   padding: 20px;
   text-align: center;
   color: #fff;
+  align-content: end;
 
 }
 nav ul {
