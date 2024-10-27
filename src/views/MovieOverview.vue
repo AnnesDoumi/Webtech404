@@ -1,6 +1,6 @@
 <template>
   <div class="movie-overview">
-    <h1>Filme Übersicht</h1>
+    <h1 style="color:black">Filme Übersicht</h1>
     <input
         type="text"
         v-model="searchQuery"
@@ -80,17 +80,20 @@ export default {
 .movie-overview {
   padding: 20px;
 }
+
 .search-input {
   padding: 10px;
   width: 100%;
   margin-bottom: 20px;
   font-size: 1rem;
 }
+
 .movie-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 }
+
 .movie-card {
   display: flex;
   flex-direction: column;
@@ -102,15 +105,18 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s;
 }
+
 .movie-card:hover {
   transform: scale(1.05);
 }
+
 .movie-card img {
   width: 100%;
   height: auto;
   max-height: 300px;
   object-fit: cover;
 }
+
 .pagination {
   display: flex;
   justify-content: center;
