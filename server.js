@@ -15,13 +15,14 @@ app.use(express.json());
 // CORS-Optionen für lokale und Vercel-Umgebungen
 const corsOptions = {
     origin: [
-        'http://localhost:5173', // Lokale Frontend-Entwicklung
-        process.env.VITE_API_BASE_URL,  // Basis-URL für Produktion
+        'http://localhost:5173', // Lokale Entwicklung
+        process.env.VERCEL_URL,  // Vercel-Umgebung
     ],
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
 };
 app.use(cors(corsOptions));
+
 
 // API-Routen
 app.use('/api/auth', authRoutes);
