@@ -1,3 +1,4 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -16,12 +17,12 @@ app.use(cors());
 app.use('/api/auth', authRoutes);
 app.use('/api/user/favorites', favoritesRoutes);
 
-// Stelle sicher, dass 'dist' korrekt in Vercel verfügbar ist
-app.use(express.static(path.resolve('dist')));
+// Statische Dateien für das Vue-Frontend aus dem 'dist'-Ordner servieren
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// Fang nur `/api` Routen ab und verarbeite alles andere als statische Seiten
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve('dist', 'index.html'));
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
