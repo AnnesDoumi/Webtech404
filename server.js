@@ -5,7 +5,7 @@ import path from 'path';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import client from './db.js';  // Verbindung zur Datenbank
+import client from './db.js'; // Verbindung zur Datenbank
 
 dotenv.config();
 
@@ -20,7 +20,7 @@ app.use(cors({
 // JWT-Secret aus Umgebungsvariablen
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Authentifizierungs-Middleware (früher `authMiddleware.js`)
+// Authentifizierungs-Middleware
 const authenticateToken = (req, res, next) => {
     const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
     if (!token) return res.status(401).json({ message: "Kein Token bereitgestellt" });
@@ -32,17 +32,38 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Authentifizierungsrouten (früher `auth.js`)
-
 // Registrierung
+app.post('/api/auth/register', async (req, res) => {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+        return res.status(400).json({ message: "Bitte geben Sie alle Informationen an." });
+    }
+
+    try {
+        const userExists = await client.execute("SELECT * FROM users WHERE username = ? OR email = ?", [username, email]);
+        if (userExists?.rows?.length > 0) {
+            return res.status(400).json({ message: "Nutzername oder E-Mail bereits registriert." });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const createdAt = new Date().toISOString();
+        const id = uuidv4();
+
+        await client.execute("INSERT INTO users (id, username, email, password, created_at) VALUES (?, ?, ?, ?, ?)",
+            [id, username, email, hashedPassword, createdAt]);
+
+        res.status(201).json({ message: "Registrierung erfolgreich" });
+    } catch (error) {
+        console.error("Fehler bei der Registrierung:", error);
+        res.status(500).json({ message: "Serverfehler" });
+    }
+});
+
+// Login
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        console.log("Login-Anfrage erhalten:", { username, password });  // Debugging-Zeile
-
-        // Überprüfen, ob die Datenbankverbindung besteht
         const user = await client.execute("SELECT * FROM users WHERE username = ?", [username]);
-        console.log("Benutzer aus der Datenbank:", user);  // Debugging-Zeile
 
         if (!user?.rows?.length) {
             return res.status(400).json({ error: true, message: "Ungültiger Benutzername oder Passwort" });
@@ -56,54 +77,23 @@ app.post('/api/auth/login', async (req, res) => {
         const token = jwt.sign({ userId: user.rows[0].id }, JWT_SECRET, { expiresIn: '1h' });
         return res.json({ token, username });
     } catch (error) {
-        console.error("Fehler beim Login:", error);  // Zeigt detaillierte Fehlermeldung an
-        res.status(500).json({ error: true, message: "Serverfehler. Bitte versuchen Sie es später erneut." });
-    }
-});
-
-
-// Login
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-
-        // Logik für die Benutzerauthentifizierung
-        const user = await db.execute("SELECT * FROM users WHERE username = ?", [username]);
-
-        if (!user?.rows?.length) {
-            return res.status(400).json({ error: true, message: "Ungültiger Benutzername oder Passwort" });
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.rows[0].password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ error: true, message: "Ungültiger Benutzername oder Passwort" });
-        }
-
-        // Erfolgsfall: Token generieren und als JSON zurückgeben
-        const token = jwt.sign({ userId: user.rows[0].id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        return res.json({ token, username });
-    } catch (error) {
         console.error("Fehler beim Login:", error);
         res.status(500).json({ error: true, message: "Serverfehler. Bitte versuchen Sie es später erneut." });
     }
 });
 
-
-// Favoriten-Routen (früher `favorites.js`)
-
-// Abfrage von Favoriten des Benutzers
+// Favoriten-Routen
 app.get('/api/favorites', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     try {
         const result = await client.execute("SELECT movie_id FROM favorites WHERE user_id = ?", [userId]);
 
         if (!result.rows || result.rows.length === 0) {
-            return res.json([]);  // Leere Liste zurückgeben
+            return res.json([]); // Leere Liste zurückgeben
         }
 
         const favoriteMovies = await Promise.all(result.rows.map(async (row) => {
             const movieId = row.movie_id;
-            // Hier sollte ein externer API-Aufruf zur Filmdatenbank erfolgen
             return { id: movieId, title: `Movie ${movieId}`, poster_path: '/path/to/poster.jpg' }; // Beispiel-Daten
         }));
 
@@ -114,7 +104,6 @@ app.get('/api/favorites', authenticateToken, async (req, res) => {
     }
 });
 
-// Entfernen eines Favoriten
 app.delete('/api/favorites/:movieId', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const movieId = req.params.movieId;
