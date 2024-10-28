@@ -3,19 +3,18 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
-<<<<<<< HEAD
-import { v4 as uuidv4 } from 'uuid'; // Beachte diese Importstruktur
-=======
 import { v4 as uuidv4 } from 'uuid';
-
->>>>>>> test1
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Registrierung
+// Debugging: Überprüfen der Umgebungsvariable JWT_SECRET
+console.log('JWT_SECRET:', JWT_SECRET);
+
+// Registrieren
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
+    console.log("Registrierungsdaten erhalten:", { username, email });
 
     if (!username || !email || !password) {
         return res.status(400).json({ message: "Bitte geben Sie alle Informationen an." });
@@ -23,6 +22,7 @@ router.post('/register', async (req, res) => {
 
     try {
         const userExists = await db.execute("SELECT * FROM users WHERE username = ? OR email = ?", [username, email]);
+        console.log("Benutzerprüfung Ergebnis:", userExists);
 
         if (userExists?.rows?.length > 0) {
             return res.status(400).json({ message: "Nutzername oder E-Mail bereits registriert." });
@@ -44,7 +44,9 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
+    console.log("Login-Anfrage erhalten:", req.body); // Überprüfe die empfangenen Daten
     const { username, password } = req.body;
+    console.log("Login-Anfrage für Benutzer:", username);
 
     if (!username || !password) {
         return res.status(400).json({ message: "Bitte Benutzername und Passwort eingeben." });
@@ -52,6 +54,7 @@ router.post('/login', async (req, res) => {
 
     try {
         const user = await db.execute("SELECT * FROM users WHERE username = ?", [username]);
+        console.log("Benutzer gefunden:", user.rows);
 
         if (!user?.rows?.length) {
             return res.status(400).json({ message: "Ungültiger Benutzername oder Passwort." });

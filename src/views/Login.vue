@@ -11,41 +11,40 @@
 </template>
 
 <script>
-  export default {
+export default {
   data() {
-  return {
-  username: '',
-  password: '',
-};
-},
+    return {
+      username: '',
+      password: '',
+    };
+  },
   methods: {
-  async login() {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: this.username, password: this.password }),
-    });
+    async login() {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: this.username, password: this.password }),
+        });
 
 
+        const data = await response.json();
 
-    const data = await response.json();
+        // Fehleranalyse, falls die Antwort vom Server nicht erfolgreich ist
+        if (!response.ok) {
+          console.error("Login-Fehler:", response.status, response.statusText, data.message);
+          alert(data.message || "Login fehlgeschlagen.");
+          return; // Falls Login fehlschlägt, beende hier
+        }
 
-  // Fehleranalyse, falls die Antwort vom Server nicht erfolgreich ist
-  if (!response.ok) {
-  console.error("Login-Fehler:", response.status, response.statusText, data.message);
-  alert(data.message || "Login fehlgeschlagen.");
-  return; // Falls Login fehlschlägt, beende hier
-}
-
-  localStorage.setItem('token', data.token);
-  this.$router.push('/').then(() => window.location.reload());
-} catch (error) {
-  console.error("Fehler beim Login:", error);
-  alert("Serverfehler. Bitte versuchen Sie es später erneut.");
-}
-},
-},
+        localStorage.setItem('token', data.token);
+        this.$router.push('/').then(() => window.location.reload());
+      } catch (error) {
+        console.error("Fehler beim Login:", error);
+        alert("Serverfehler. Bitte versuchen Sie es später erneut.");
+      }
+    },
+  },
 };
 
 </script>
