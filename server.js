@@ -19,16 +19,13 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-    origin: function (origin, callback) {
-        if (allowedOrigins.includes(origin) || !origin) {
-            callback(null, true);
-        } else {
-            callback(new Error('Nicht erlaubter CORS-Origin'));
-        }
-    },
+    origin: process.env.NODE_ENV === 'production'
+        ? 'https://dein-vercel-projekt.vercel.app'
+        : 'http://localhost:5173',
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+
 
 // API-Routen
 app.use('/api/auth', authRoutes);

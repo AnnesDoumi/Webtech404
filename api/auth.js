@@ -3,7 +3,9 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
-import { v4 as uuidv4 } from 'uuid';
+import pkg from 'uuid';
+const { v4: uuidv4 } = pkg;
+
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;

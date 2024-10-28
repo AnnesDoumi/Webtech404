@@ -4,26 +4,10 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "dist/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/index.html"
-    }
-  ],
-  "env": {
-    "JWT_SECRET": "@jwt_secret",
-    "VITE_API_BASE_URL": "@vite_api_base_url",
-    "LIBSQL_URL": "@libsql_url",
-    "LIBSQL_AUTH_TOKEN": "@libsql_auth_token"
-  }
+    { "src": "/api/(.*)", "dest": "/server.js" },
+    { "src": "/(.*)", "dest": "/dist/index.html" }
+  ]
 }
