@@ -20,6 +20,8 @@ const allowedOrigins = [
 ];
 
 
+
+
 const corsOptions = {
     origin: function (origin, callback) {
         if (allowedOrigins.includes(origin) || !origin) {
@@ -31,6 +33,12 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    next();
+});
+
 
 // API-Routen
 app.use('/api/auth', authRoutes);
