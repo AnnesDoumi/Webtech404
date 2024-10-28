@@ -12,20 +12,16 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Aktualisierte CORS-Optionen
-const allowedOrigins = [
-    process.env.VITE_API_BASE_URL,  // URL für Vercel oder Production
-    'http://localhost:5173'         // Lokale Entwicklungsumgebung
-];
-
+// CORS-Optionen für lokale und Vercel-Umgebungen
 const corsOptions = {
-    origin: process.env.NODE_ENV === 'production'
-        ? 'https://dein-vercel-projekt.vercel.app'
-        : 'http://localhost:5173',
-    optionsSuccessStatus: 200
+    origin: [
+        'http://localhost:5173', // Lokale Frontend-Entwicklung
+        process.env.VERCEL_URL,  // Vercel-Umgebungs-URL
+    ],
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'DELETE', 'PATCH'],
 };
 app.use(cors(corsOptions));
-
 
 // API-Routen
 app.use('/api/auth', authRoutes);
@@ -39,12 +35,14 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
+// Server-Port festlegen
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     testDBConnection();
 });
 
+// Test der Datenbankverbindung
 async function testDBConnection() {
     try {
         const result = await client.execute('SELECT 1');
