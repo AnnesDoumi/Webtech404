@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import authRoutes from './api/auth.js';
 import favoritesRoutes from './api/favorites.js';
+import foldersRoutes from './api/folders.js'; // Ordner-Route importieren
 
 dotenv.config();
 
@@ -17,6 +18,8 @@ app.use(cors({
 // API-Routen verwenden
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoritesRoutes);
+app.use('/api/folders', foldersRoutes);
+
 
 // Statische Dateien bereitstellen
 const __dirname = path.resolve();
@@ -37,3 +40,4 @@ if (process.env.NODE_ENV !== 'production') {
         console.log(`Server läuft lokal auf Port ${PORT}`);
     });
 }
+

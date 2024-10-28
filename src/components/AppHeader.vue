@@ -9,17 +9,27 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default {
   setup() {
-    const isLoggedIn = computed(() => !!localStorage.getItem('token'));
+    const router = useRouter();
+    const isLoggedIn = ref(!!localStorage.getItem('token'));
 
     const logout = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('username');
-      window.location.reload();// Zur Startseite umleiten
+      isLoggedIn.value = false; // Aktualisiere den Zustand auf ausgeloggt
+      router.push('/'); // Leite zur Startseite um
     };
+
+    // Überwache `localStorage` auf Änderungen des Tokens (zum Beispiel nach einem Login)
+    onMounted(() => {
+      window.addEventListener('storage', () => {
+        isLoggedIn.value = !!localStorage.getItem('token');
+      });
+    });
 
     return {
       isLoggedIn,
@@ -28,7 +38,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .app-header {

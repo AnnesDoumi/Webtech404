@@ -66,4 +66,23 @@ router.put('/:movieId/folder', authenticateToken, async (req, res) => {
     }
 });
 
+// Ordner löschen
+router.delete('/:folderId', authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+    const folderId = req.params.folderId;
+
+    try {
+        await client.execute(
+            "UPDATE favorites SET folder_id = NULL WHERE user_id = ? AND folder_id = ?",
+            [userId, folderId]
+        );
+        await client.execute("DELETE FROM folders WHERE user_id = ? AND id = ?", [userId, folderId]);
+
+        res.status(200).json({ message: "Ordner erfolgreich gelöscht" });
+    } catch (error) {
+        console.error("Fehler beim Löschen des Ordners:", error);
+        res.status(500).json({ message: "Fehler beim Löschen des Ordners" });
+    }
+});
+
 export default router;

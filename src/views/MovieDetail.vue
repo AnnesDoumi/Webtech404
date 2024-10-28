@@ -63,22 +63,32 @@ export default {
         return;
       }
 
-      const response = await fetch('/api/user/favorites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({movieId: this.movie.id})
-      });
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/favorites`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            movie_id: this.movie.id,
+            note: '', // Optional: Eine Notiz kann hier über ein Eingabefeld hinzugefügt werden
+            folder: null // Optional: Ein Ordner kann ebenfalls optional angegeben werden
+          })
+        });
 
-      if (response.ok) {
-        alert("Zu Favoriten hinzugefügt");
-      } else {
-        alert("Fehler beim Hinzufügen.");
+        if (response.ok) {
+          alert("Film wurde zu den Favoriten hinzugefügt");
+        } else {
+          const errorData = await response.json();
+          console.error("Fehler beim Hinzufügen des Favoriten:", errorData.message);
+          alert(errorData.message || "Fehler beim Hinzufügen zu den Favoriten.");
+        }
+      } catch (error) {
+        console.error("Fehler beim Hinzufügen des Favoriten:", error);
+        alert("Serverfehler. Bitte versuchen Sie es später erneut.");
       }
-    }
-    ,
+    },
   },
 };
 </script>
