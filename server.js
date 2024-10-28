@@ -35,31 +35,32 @@ const authenticateToken = (req, res, next) => {
 // Authentifizierungsrouten (früher `auth.js`)
 
 // Registrierung
-app.post('/api/auth/register', async (req, res) => {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-        return res.status(400).json({ message: "Bitte geben Sie alle Informationen an." });
-    }
-
+app.post('/api/auth/login', async (req, res) => {
     try {
-        const userExists = await client.execute("SELECT * FROM users WHERE username = ? OR email = ?", [username, email]);
-        if (userExists?.rows?.length > 0) {
-            return res.status(400).json({ message: "Nutzername oder E-Mail bereits registriert." });
+        const { username, password } = req.body;
+        console.log("Login-Anfrage erhalten:", { username, password });  // Debugging-Zeile
+
+        // Überprüfen, ob die Datenbankverbindung besteht
+        const user = await client.execute("SELECT * FROM users WHERE username = ?", [username]);
+        console.log("Benutzer aus der Datenbank:", user);  // Debugging-Zeile
+
+        if (!user?.rows?.length) {
+            return res.status(400).json({ error: true, message: "Ungültiger Benutzername oder Passwort" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const createdAt = new Date().toISOString();
-        const id = uuidv4();
+        const isPasswordValid = await bcrypt.compare(password, user.rows[0].password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ error: true, message: "Ungültiger Benutzername oder Passwort" });
+        }
 
-        await client.execute("INSERT INTO users (id, username, email, password, created_at) VALUES (?, ?, ?, ?, ?)",
-            [id, username, email, hashedPassword, createdAt]);
-
-        res.status(201).json({ message: "Registrierung erfolgreich" });
+        const token = jwt.sign({ userId: user.rows[0].id }, JWT_SECRET, { expiresIn: '1h' });
+        return res.json({ token, username });
     } catch (error) {
-        console.error("Fehler bei der Registrierung:", error);
-        res.status(500).json({ message: "Serverfehler" });
+        console.error("Fehler beim Login:", error);  // Zeigt detaillierte Fehlermeldung an
+        res.status(500).json({ error: true, message: "Serverfehler. Bitte versuchen Sie es später erneut." });
     }
 });
+
 
 // Login
 app.post('/api/auth/login', async (req, res) => {
