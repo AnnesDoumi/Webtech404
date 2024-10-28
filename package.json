@@ -27,6 +27,6 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@vitejs/plugin-vue": "^5.1.4",
-    "vite": "^5.4.9"
+    "vite": "^5.4.10"
   }
 }
