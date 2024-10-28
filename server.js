@@ -10,28 +10,30 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// CORS konfigurieren
 app.use(cors({
     origin: ['https://webtech404.vercel.app', 'http://localhost:5173']
 }));
 
-// Routen für die API verwenden
+// API-Routen verwenden
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoritesRoutes);
 
-// Statische Dateien für das Vue-Frontend
+// Statische Dateien bereitstellen
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Catch-All Route für das Vue-Frontend
+// Fallback für das Frontend
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// Server starten
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server läuft auf Port ${PORT}`);
-});
-
+// Export für Vercel (Serverless Environment)
 export default app;
+
+// Nur für lokale Entwicklung: Server direkt starten, wenn `NODE_ENV` nicht auf `production` gesetzt ist
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`Server läuft lokal auf Port ${PORT}`);
+    });
+}
