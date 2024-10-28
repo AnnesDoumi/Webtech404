@@ -63,29 +63,30 @@ app.post('/api/auth/register', async (req, res) => {
 
 // Login
 app.post('/api/auth/login', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ message: "Bitte Benutzername und Passwort eingeben." });
-    }
-
     try {
-        const user = await client.execute("SELECT * FROM users WHERE username = ?", [username]);
+        const { username, password } = req.body;
+
+        // Logik für die Benutzerauthentifizierung
+        const user = await db.execute("SELECT * FROM users WHERE username = ?", [username]);
+
         if (!user?.rows?.length) {
-            return res.status(400).json({ message: "Ungültiger Benutzername oder Passwort." });
+            return res.status(400).json({ error: true, message: "Ungültiger Benutzername oder Passwort" });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.rows[0].password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: "Ungültiger Benutzername oder Passwort." });
+            return res.status(400).json({ error: true, message: "Ungültiger Benutzername oder Passwort" });
         }
 
-        const token = jwt.sign({ userId: user.rows[0].id }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token, username });
+        // Erfolgsfall: Token generieren und als JSON zurückgeben
+        const token = jwt.sign({ userId: user.rows[0].id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        return res.json({ token, username });
     } catch (error) {
         console.error("Fehler beim Login:", error);
-        res.status(500).json({ message: "Serverfehler" });
+        res.status(500).json({ error: true, message: "Serverfehler. Bitte versuchen Sie es später erneut." });
     }
 });
+
 
 // Favoriten-Routen (früher `favorites.js`)
 
