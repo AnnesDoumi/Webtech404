@@ -22,16 +22,28 @@ export default {
   },
   methods: {
     async register() {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username: this.username, email: this.email, password: this.password}),
-      });
-      if (response.ok) {
-        alert("Registrierung erfolgreich.");
-        this.$router.push('/login');
-      } else {
-        alert("Registrierung fehlgeschlagen.");
+      try {
+        const response = await fetch('http://localhost:5173/api/auth/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            username: this.username,
+            email: this.email,
+            password: this.password,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert("Registrierung erfolgreich.");
+          this.$router.push('/login');
+        } else {
+          console.error("Registrierungsfehler:", data);
+          alert(`Registrierung fehlgeschlagen: ${data.message}`);
+        }
+      } catch (error) {
+        console.error("Fehler bei der Anfrage:", error);
+        alert("Serverfehler. Bitte versuchen Sie es später erneut.");
       }
     },
   },

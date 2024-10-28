@@ -11,13 +11,9 @@
 </template>
 
 <script>
+import { eventBus } from '../eventBus';
+
 export default {
-  data() {
-    return {
-      username: '',
-      password: '',
-    };
-  },
   methods: {
     async login() {
       try {
@@ -30,7 +26,10 @@ export default {
         if (response.ok) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('username', data.username);
-          this.$router.push('/'); // Weiterleitung zur Startseite
+          this.$router.push('/').then(() => {
+            // Seite nach Weiterleitung neu laden, um Login-Status zu aktualisieren
+            window.location.reload();});
+
         } else {
           alert(data.message || "Login fehlgeschlagen.");
         }
@@ -38,9 +37,10 @@ export default {
         console.error("Fehler beim Login:", error);
         alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.");
       }
-    },
-  },
+    }
+  }
 };
+
 </script>
 
 <style scoped>

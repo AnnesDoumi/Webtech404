@@ -1,6 +1,6 @@
 <template>
   <div class="movie-detail">
-    <img :src="getMoviePoster(movie.backdrop_path)" alt="Backdrop" class="movie-backdrop" />
+    <img :src="getMoviePoster(movie.backdrop_path)" alt="Backdrop" class="movie-backdrop"/>
     <div class="movie-content">
       <h1 class="movie-title">{{ movie.title }}</h1>
       <p class="movie-tagline">{{ movie.tagline }}</p>
@@ -10,12 +10,14 @@
       <div class="movie-details">
         <p><strong>Veröffentlichungsdatum:</strong> {{ movie.release_date }}</p>
         <p><strong>Bewertung:</strong> {{ movie.vote_average }} / 10 ({{ movie.vote_count }} Stimmen)</p>
-        <p><strong>Originalsprache:</strong> {{ movie.original_language ? movie.original_language.toUpperCase() : 'N/A' }}</p>
+        <p><strong>Originalsprache:</strong> {{
+            movie.original_language ? movie.original_language.toUpperCase() : 'N/A'
+          }}</p>
 
         <div v-if="movie.production_companies.length" class="production-companies">
           <h3>Produktionsfirmen:</h3>
           <div v-for="company in movie.production_companies" :key="company.id" class="company">
-            <img v-if="company.logo_path" :src="getCompanyLogo(company.logo_path)" :alt="company.name" />
+            <img v-if="company.logo_path" :src="getCompanyLogo(company.logo_path)" :alt="company.name"/>
             <span>{{ company.name }}</span>
           </div>
         </div>
@@ -61,13 +63,13 @@ export default {
         return;
       }
 
-      const response = await fetch('/api/favorites', {
+      const response = await fetch('/api/user/favorites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ movieId: this.movie.id, userId: JSON.parse(atob(localStorage.getItem('token').split('.')[1])).userId })
+        body: JSON.stringify({movieId: this.movie.id})
       });
 
       if (response.ok) {
@@ -75,7 +77,8 @@ export default {
       } else {
         alert("Fehler beim Hinzufügen.");
       }
-    },
+    }
+    ,
   },
 };
 </script>

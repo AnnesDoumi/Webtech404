@@ -1,12 +1,12 @@
-import pg from 'pg'; // pg als Standard exportieren
+// db.js
+import { createClient } from "@libsql/client";
+import dotenv from 'dotenv';
 
-const { Pool } = pg; // Extrahiere Pool aus dem Standardexport
+dotenv.config();
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+const client = createClient({
+    url: process.env.LIBSQL_URL,
+    authToken: process.env.LIBSQL_AUTH_TOKEN,
 });
 
-export default {
-    query: (text, params) => pool.query(text, params),
-};
+export default client;
