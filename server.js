@@ -11,7 +11,24 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+// Aktualisierte CORS-Optionen
+const allowedOrigins = [
+    process.env.VITE_API_BASE_URL,  // URL für Vercel oder Production
+    'http://localhost:5173'         // Lokale Entwicklungsumgebung
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Nicht erlaubter CORS-Origin'));
+        }
+    },
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 
 // API-Routen
 app.use('/api/auth', authRoutes);

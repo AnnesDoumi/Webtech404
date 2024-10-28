@@ -1,3 +1,4 @@
+
 <template>
   <div class="auth-container">
     <h1>Registrieren</h1>
