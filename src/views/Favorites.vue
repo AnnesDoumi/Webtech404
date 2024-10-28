@@ -43,7 +43,7 @@ export default {
   methods: {
     async fetchFavorites() {
       try {
-        const response = await fetch("http://localhost:5000/api/user/favorites", {
+        const response = await fetch("http://localhost:5000/api/favorites", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
@@ -63,7 +63,7 @@ export default {
     async saveNote(movie) {
       try {
         const response = await fetch(
-            `http://localhost:5000/api/user/favorites/${movie.id}/note`,
+            `http://localhost:5000/api/favorites/${movie.id}/note`,
             {
               method: "PATCH",
               headers: {
@@ -85,7 +85,7 @@ export default {
     },
     async removeFavorite(movieId) {
       try {
-        const response = await fetch(`http://localhost:5000/api/user/favorites/${movieId}`, {
+        const response = await fetch(`http://localhost:5000/api/favorites/${movieId}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`

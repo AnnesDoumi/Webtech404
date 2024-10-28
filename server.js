@@ -32,7 +32,7 @@ app.use(cors(corsOptions));
 
 // API-Routen
 app.use('/api/auth', authRoutes);
-app.use('/api/user/favorites', favoritesRoutes);
+app.use('/api/favorites', favoritesRoutes);
 
 // Statische Dateien für das Vue-Frontend aus dem 'dist'-Ordner servieren
 const __dirname = path.resolve();
