@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import client from '../db.js'; // Verweis auf die Datenbankverbindung
+import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;

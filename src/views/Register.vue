@@ -24,7 +24,7 @@ export default {
   methods: {
     async register() {
       try {
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/auth/login`;
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/auth/register`;
 
         const response = await fetch(apiUrl, {
           method: 'POST',
