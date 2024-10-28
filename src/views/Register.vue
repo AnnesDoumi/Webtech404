@@ -24,7 +24,7 @@ export default {
     async register() {
       try {
         // Dynamische URL basierend auf Umgebung
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'https://webtech404.vercel.app/api'}/auth/register`;
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/auth/register`;
 
         const response = await fetch(apiUrl, {
           method: 'POST',
