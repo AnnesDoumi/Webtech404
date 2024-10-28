@@ -11,13 +11,17 @@
 </template>
 
 <script>
-import { eventBus } from '../eventBus';
-
 export default {
+  data() {
+    return {
+      username: '',
+      password: '',
+    };
+  },
   methods: {
     async login() {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: this.username, password: this.password }),
@@ -26,22 +30,17 @@ export default {
         const data = await response.json();
         if (response.ok) {
           localStorage.setItem('token', data.token);
-          localStorage.setItem('username', data.username);
-          this.$router.push('/').then(() => {
-            // Seite nach Weiterleitung neu laden, um Login-Status zu aktualisieren
-            window.location.reload();});
-
+          this.$router.push('/').then(() => window.location.reload());
         } else {
           alert(data.message || "Login fehlgeschlagen.");
         }
       } catch (error) {
         console.error("Fehler beim Login:", error);
-        alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.");
+        alert("Serverfehler. Bitte versuchen Sie es später erneut.");
       }
-    }
-  }
+    },
+  },
 };
-
 </script>
 
 <style scoped>

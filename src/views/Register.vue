@@ -23,9 +23,9 @@ export default {
   methods: {
     async register() {
       try {
-        const response = await fetch('http://localhost:5173/api/auth/register', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             username: this.username,
             email: this.email,
