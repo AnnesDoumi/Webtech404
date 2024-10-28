@@ -3,7 +3,12 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
+<<<<<<< HEAD
 import { v4 as uuidv4 } from 'uuid'; // Beachte diese Importstruktur
+=======
+import { v4 as uuidv4 } from 'uuid';
+
+>>>>>>> test1
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
