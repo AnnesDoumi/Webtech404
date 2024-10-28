@@ -71,7 +71,7 @@ export default {
     },
     async fetchMovies() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      let url = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=${this.page}`;
+      let url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${this.page}`;
       if (this.selectedGenre) {
         url += `&with_genres=${this.selectedGenre}`;
       }
@@ -96,12 +96,12 @@ export default {
     },
     nextPage() {
       this.page++;
-      this.searchMovies();
+      this.fetchMovies();
     },
     prevPage() {
       if (this.page > 1) {
         this.page--;
-        this.searchMovies();
+        this.fetchMovies();
       }
     },
     getMoviePoster(path) {
@@ -116,6 +116,8 @@ export default {
   }
 };
 </script>
+
+
 
 <style scoped>
 .movie-overview {

@@ -1,15 +1,32 @@
 <template>
-  <div class="ranking">
-    <h1>Top Filme Rangliste</h1>
+  <div class="movie-overview">
+    <h1>Rangliste der Filme</h1>
+
+    <!-- Navigation zu verschiedenen Seiten -->
+    <div class="navigation-links">
+      <router-link to="/">Filme</router-link>
+      <router-link to="/favorites">Meine Favoriten</router-link>
+      <router-link to="/ranking">Rangliste</router-link>
+    </div>
+
+    <!-- Kategorien-Dropdown-Menü -->
+
+
+    <!-- Filme im Raster anzeigen -->
     <div class="movie-grid">
       <div v-for="movie in movies" :key="movie.id" class="movie-card">
         <router-link :to="{ name: 'movie-detail', params: { id: movie.id }}">
-          <img :src="getMoviePoster(movie.poster_path)" alt="Movie Poster" />
+          <img :src="getMoviePoster(movie.poster_path)" alt="Movie Poster">
           <h2>{{ movie.title }}</h2>
-          <p><strong>Bewertung:</strong> {{ movie.vote_average }} / 10</p>
-          <p><strong>Stimmenanzahl:</strong> {{ movie.vote_count }}</p>
         </router-link>
       </div>
+    </div>
+
+    <!-- Paginierung -->
+    <div class="pagination">
+      <button @click="prevPage" :disabled="page <= 1">Zurück</button>
+      <span>Seite {{ page }}</span>
+      <button @click="nextPage">Weiter</button>
     </div>
   </div>
 </template>
@@ -19,24 +36,54 @@ export default {
   data() {
     return {
       movies: [],
+      genres: [],
+      page: 1,
+      selectedGenre: null,
     };
   },
   async mounted() {
+    await this.fetchGenres();
     this.fetchTopRatedMovies();
   },
   methods: {
+    async fetchGenres() {
+      const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+      const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
+      const data = await response.json();
+      this.genres = data.genres;
+    },
     async fetchTopRatedMovies() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      const response = await fetch(`https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&language=en-US&page=1`);
+      let url = `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=${this.page}`;
+      if (this.selectedGenre) {
+        url += `&with_genres=${this.selectedGenre}`;
+      }
+      const response = await fetch(url);
       const data = await response.json();
       this.movies = data.results;
+    },
+    filterByCategory(genreId) {
+      this.selectedGenre = genreId;
+      this.page = 1;
+      this.fetchTopRatedMovies();
+    },
+    nextPage() {
+      this.page++;
+      this.fetchTopRatedMovies();
+    },
+    prevPage() {
+      if (this.page > 1) {
+        this.page--;
+        this.fetchTopRatedMovies();
+      }
     },
     getMoviePoster(path) {
       return `https://image.tmdb.org/t/p/w500${path}`;
     },
-  },
+  }
 };
 </script>
+
 
 <style scoped>
 .ranking {
