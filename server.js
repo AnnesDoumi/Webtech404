@@ -17,11 +17,16 @@ app.use(express.json());
 
 // CORS-Optionen für lokale und Vercel-Umgebungen
 const corsOptions = {
-    origin: '*', // Für den Test offen gelassen
+    origin: [
+        'http://localhost:5173',          // Lokale Entwicklung
+        'https://webtech404.vercel.app'   // Vercel-Deployment
+    ],
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
 };
 app.use(cors(corsOptions));
+
+
 
 // API-Routen
 app.use('/api/auth', authRoutes);
@@ -30,7 +35,6 @@ app.use('/api/favorites', favoritesRoutes);
 // Statische Dateien für das Vue-Frontend aus dem 'dist'-Ordner
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Fallback-Route: Alle Anfragen außer `/api` werden an `index.html` weitergeleitet
 app.get(/^\/(?!api).*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });

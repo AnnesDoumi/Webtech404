@@ -20,11 +20,9 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL || '/'), // BASE_URL oder '/' als Fallback
+    history: createWebHistory(),
     routes,
 });
 
-{ path: '/:catchAll(.*)', component: NotFoundComponent }  // Für nicht definierte Routen
-
-
 export default router;
+

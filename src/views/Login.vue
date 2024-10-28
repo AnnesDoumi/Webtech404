@@ -28,7 +28,8 @@
     });
 
 
-  const data = await response.json();
+
+    const data = await response.json();
 
   // Fehleranalyse, falls die Antwort vom Server nicht erfolgreich ist
   if (!response.ok) {
