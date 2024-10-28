@@ -10,7 +10,14 @@
     </div>
 
     <!-- Kategorien-Dropdown-Menü -->
-
+    <div class="dropdown">
+      <button class="dropbtn">Kategorien</button>
+      <div class="dropdown-content">
+        <button v-for="genre in genres" :key="genre.id" @click="filterByCategory(genre.id)">
+          {{ genre.name }}
+        </button>
+      </div>
+    </div>
 
     <!-- Filme im Raster anzeigen -->
     <div class="movie-grid">
