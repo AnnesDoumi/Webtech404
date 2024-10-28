@@ -1,39 +1,37 @@
-// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './api/auth.js';
 import favoritesRoutes from './api/favorites.js';
 import client from './db.js';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 app.use(express.json());
 
 // CORS-Optionen für lokale und Vercel-Umgebungen
 const corsOptions = {
-    origin: [
-        'http://localhost:5173', // Lokale Entwicklung
-        process.env.VERCEL_URL,  // Vercel-Umgebung
-    ],
+    origin: '*', // Für den Test offen gelassen
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
 };
 app.use(cors(corsOptions));
-
 
 // API-Routen
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoritesRoutes);
 
 // Statische Dateien für das Vue-Frontend aus dem 'dist'-Ordner
-const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Alle Anfragen, die nicht mit /api beginnen, zum Frontend umleiten
-app.get('*', (req, res) => {
+// Fallback-Route: Alle Anfragen außer `/api` werden an `index.html` weitergeleitet
+app.get(/^\/(?!api).*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
@@ -51,5 +49,6 @@ async function testDBConnection() {
         console.log('Connected to Turso:', result);
     } catch (error) {
         console.error('Database connection error:', error);
+        throw new Error('Database connection failed');
     }
 }
