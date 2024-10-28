@@ -24,7 +24,9 @@ export default {
   methods: {
     async register() {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'https://webtech404.vercel.app'}/auth/login`;
+
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

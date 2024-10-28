@@ -21,7 +21,7 @@ export default {
   methods: {
     async login() {
       try {
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'https://webtech404.vercel.app/api/auth/login'}/auth/login`;
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'https://webtech404.vercel.app'}/auth/login`;
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
