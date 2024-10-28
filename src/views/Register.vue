@@ -1,4 +1,3 @@
-
 <template>
   <div class="auth-container">
     <h1>Registrieren</h1>
@@ -24,7 +23,8 @@ export default {
   methods: {
     async register() {
       try {
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/auth/register`;
+        // Dynamische URL basierend auf Umgebung
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'https://webtech404.vercel.app/api'}/auth/register`;
 
         const response = await fetch(apiUrl, {
           method: 'POST',
