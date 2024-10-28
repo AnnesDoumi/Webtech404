@@ -16,7 +16,7 @@ app.use(express.json());
 const corsOptions = {
     origin: [
         'http://localhost:5173', // Lokale Frontend-Entwicklung
-        process.env.VERCEL_URL,  // Vercel-Umgebungs-URL
+        process.env.VITE_API_BASE_URL,  // Basis-URL für Produktion
     ],
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
@@ -27,10 +27,11 @@ app.use(cors(corsOptions));
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoritesRoutes);
 
-// Statische Dateien für das Vue-Frontend aus dem 'dist'-Ordner servieren
+// Statische Dateien für das Vue-Frontend aus dem 'dist'-Ordner
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// Alle Anfragen, die nicht mit /api beginnen, zum Frontend umleiten
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
@@ -38,7 +39,7 @@ app.get('*', (req, res) => {
 // Server-Port festlegen
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server läuft auf Port ${PORT}`);
     testDBConnection();
 });
 
