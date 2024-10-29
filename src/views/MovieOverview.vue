@@ -28,11 +28,30 @@
       </div>
     </div>
 
+    <!-- Sortierfunktion -->
+    <div class="sort-options">
+      <label for="sortOption">Sortieren nach:</label>
+      <select v-model="sortOption" @change="fetchMovies">
+        <option value="">Standard</option>
+        <option value="release_date">Erscheinungsdatum</option>
+        <option value="vote_count">Stimmenanzahl</option>
+        <option value="title">Alphabetisch</option>
+      </select>
+
+      <!-- Sortierreihenfolge -->
+      <label>
+        <input type="radio" value="asc" v-model="sortOrder" @change="fetchMovies" /> Aufsteigend
+      </label>
+      <label>
+        <input type="radio" value="desc" v-model="sortOrder" @change="fetchMovies" /> Absteigend
+      </label>
+    </div>
+
     <!-- Filme im Raster anzeigen -->
     <div class="movie-grid">
       <div v-for="movie in movies" :key="movie.id" class="movie-card">
         <router-link :to="{ name: 'movie-detail', params: { id: movie.id }}">
-          <img :src="getMoviePoster(movie.poster_path)" alt="Movie Poster">
+          <img :src="getMoviePoster(movie.poster_path)" alt="Movie Poster" />
           <h2>{{ movie.title }}</h2>
         </router-link>
       </div>
@@ -56,6 +75,8 @@ export default {
       searchQuery: '',
       page: 1,
       selectedGenre: null,
+      sortOption: '', // Sortierkriterium
+      sortOrder: 'asc' // Sortierreihenfolge
     };
   },
   async mounted() {
@@ -65,16 +86,26 @@ export default {
   methods: {
     async fetchGenres() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
+      const response = await fetch(
+          `https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`
+      );
       const data = await response.json();
       this.genres = data.genres;
     },
     async fetchMovies() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
       let url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${this.page}`;
+
+      // Genre-Filter
       if (this.selectedGenre) {
         url += `&with_genres=${this.selectedGenre}`;
       }
+
+      // Sortierung anwenden
+      if (this.sortOption) {
+        url += `&sort_by=${this.sortOption}.${this.sortOrder}`;
+      }
+
       const response = await fetch(url);
       const data = await response.json();
       this.movies = data.results;
@@ -82,7 +113,9 @@ export default {
     async searchMovies() {
       if (this.searchQuery) {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${this.searchQuery}&page=${this.page}`);
+        const response = await fetch(
+            `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${this.searchQuery}&page=${this.page}`
+        );
         const data = await response.json();
         this.movies = data.results;
       } else {
@@ -106,7 +139,7 @@ export default {
     },
     getMoviePoster(path) {
       return `https://image.tmdb.org/t/p/w500${path}`;
-    },
+    }
   },
   watch: {
     searchQuery() {
@@ -116,8 +149,6 @@ export default {
   }
 };
 </script>
-
-
 
 <style scoped>
 .movie-overview {
@@ -130,6 +161,12 @@ export default {
 }
 
 
+.sort-options {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 
 /* Dropdown Menü Styling */
 .dropdown {
