@@ -15,8 +15,10 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/server.js" },
-    { "source": "/favorites", "destination": "/dist/index.html" },
-    { "source": "/ranking", "destination": "/dist/index.html" },
     { "source": "/(.*)", "destination": "/dist/index.html" }
+  ],
+  "redirects": [
+    { "source": "/favorites", "destination": "/dist/index.html", "statusCode": 200 },
+    { "source": "/ranking", "destination": "/dist/index.html", "statusCode": 200 }
   ]
 }
