@@ -11,7 +11,7 @@
 
     <!-- Kategorien-Dropdown-Menü -->
     <div class="dropdown">
-      <button class="dropbtn">Kategorien</button>
+      <button class="dropbtn" @click="showAllCategories">Allgemein</button>
       <div class="dropdown-content">
         <button v-for="genre in genres" :key="genre.id" @click="filterByCategory(genre.id)">
           {{ genre.name }}
@@ -61,16 +61,24 @@ export default {
     },
     async fetchTopRatedMovies() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      let url = `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=${this.page}`;
+      let url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=vote_average.desc&vote_count.gte=100&page=${this.page}`;
+
       if (this.selectedGenre) {
         url += `&with_genres=${this.selectedGenre}`;
       }
+
       const response = await fetch(url);
       const data = await response.json();
       this.movies = data.results;
-    },
+    }
+    ,
     filterByCategory(genreId) {
       this.selectedGenre = genreId;
+      this.page = 1;
+      this.fetchTopRatedMovies();
+    },
+    showAllCategories() {
+      this.selectedGenre = null; // Clear selected genre
       this.page = 1;
       this.fetchTopRatedMovies();
     },
@@ -96,11 +104,13 @@ export default {
 .ranking {
   padding: 20px;
 }
+
 .movie-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 }
+
 .movie-card {
   display: flex;
   flex-direction: column;
@@ -112,9 +122,11 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s;
 }
+
 .movie-card:hover {
   transform: scale(1.05);
 }
+
 .movie-card img {
   width: 100%;
   height: auto;
