@@ -18,7 +18,7 @@
     { "source": "/(.*)", "destination": "/dist/index.html" }
   ],
   "redirects": [
-    { "source": "/favorites", "destination": "/dist/index.html", "statusCode": 200 },
-    { "source": "/ranking", "destination": "/dist/index.html", "statusCode": 200 }
+    { "source": "/Favorites", "destination": "/dist/index.html", "statusCode": 200 },
+    { "source": "/Ranking", "destination": "/dist/index.html", "statusCode": 200 }
   ]
 }
