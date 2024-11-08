@@ -3,20 +3,8 @@
     <h1>Filme Übersicht</h1>
 
     <!-- Navigation zu verschiedenen Seiten -->
-    <div class="navigation-links">
-      <router-link to="/">Filme</router-link>
-      <router-link to="/favorites">Meine Favoriten</router-link>
-      <router-link to="/ranking">Rangliste</router-link>
-    </div>
 
     <!-- Suchfunktion -->
-    <input
-        type="text"
-        v-model="searchQuery"
-        placeholder="Filme durchsuchen"
-        @input="searchMovies"
-        class="search-input"
-    />
 
     <!-- Kategorien-Dropdown-Menü -->
     <div class="dropdown">
@@ -74,78 +62,78 @@ export default {
       sortOrder: 'asc',
     };
   },
+
   async mounted() {
+    // Initialisiere den Suchbegriff aus der URL
+    this.searchQuery = this.$route.query.search || '';
     await this.fetchGenres();
     this.fetchMovies();
   },
   methods: {
     async fetchGenres() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
-      const data = await response.json();
-      this.genres = data.genres;
+      try {
+        const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
+        const data = await response.json();
+        this.genres = data.genres;
+      } catch (error) {
+        console.error("Fehler beim Abrufen der Genres:", error);
+      }
     },
     async fetchMovies() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      let url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${this.page}`;
+      let url;
 
-      // Genre-Filter
-      if (this.selectedGenre) {
-        url += `&with_genres=${this.selectedGenre}`;
-      }
-
-      // Sortierung anwenden
-      if (this.sortOption) {
-        url += `&sort_by=${this.sortOption}.${this.sortOrder}`;
-      }
-
-      const response = await fetch(url);
-      const data = await response.json();
-
-      // Filter nur Filme mit Poster
-      this.movies = data.results.filter(movie => movie.poster_path);
-    },
-    async searchMovies() {
+      // Unterscheide zwischen einer normalen Anfrage und einer Suchanfrage
       if (this.searchQuery) {
-        const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${this.searchQuery}&page=${this.page}`);
-        const data = await response.json();
-        this.movies = data.results.filter(movie => movie.poster_path);
+        // Verwende die Such-API, wenn ein Suchbegriff vorhanden ist
+        url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.page}`;
       } else {
-        this.fetchMovies();
+        // Verwende die Discover-API, wenn kein Suchbegriff vorhanden ist
+        url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${this.page}`;
+        if (this.selectedGenre) {
+          url += `&with_genres=${this.selectedGenre}`;
+        }
       }
-    },
-    filterByCategory(genreId) {
-      this.selectedGenre = genreId;
-      this.page = 1;
-      this.fetchMovies();
-    },
-    toggleSortOrder() {
-      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-      this.fetchMovies();
-    },
-    nextPage() {
-      this.page++;
-      this.fetchMovies();
-    },
-    prevPage() {
-      if (this.page > 1) {
-        this.page--;
-        this.fetchMovies();
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Überprüfe, ob Daten verfügbar sind
+        if (data.results) {
+          this.movies = data.results.filter(movie => movie.poster_path);
+        } else {
+          this.movies = [];
+        }
+      } catch (error) {
+        console.error("Fehler beim Abrufen der Filme:", error);
+        this.movies = [];
       }
     },
     getMoviePoster(path) {
+      // Überprüfe, ob der Pfad existiert
+      if (!path) {
+        return 'https://via.placeholder.com/500x750?text=No+Image';
+      }
       return `https://image.tmdb.org/t/p/w500${path}`;
     },
   },
   watch: {
-    searchQuery() {
+    // Überwache Änderungen des `search`-Query-Parameters
+    '$route.query.search'(newSearch) {
+      this.searchQuery = newSearch || '';
       this.page = 1;
-      this.searchMovies();
-    }
-  }
+      this.fetchMovies(); // Rufe fetchMovies erneut auf, wenn sich der Suchbegriff ändert
+    },
+  },
 };
 </script>
+
+
+
+
+
 
 <style scoped>
 .movie-overview {

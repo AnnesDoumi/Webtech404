@@ -7,6 +7,7 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Favorites from '../views/Favorites.vue';
 import Ranking from '../views/Ranking.vue';
+import SeriesOverview from "../views/SeriesOverview.vue";
 
 const routes = [
     { path: '/', name: 'home', component: MovieOverview },
@@ -17,6 +18,7 @@ const routes = [
     { path: '/register', name: 'register', component: Register },
     { path: '/favorites', name: 'favorites', component: Favorites },
     { path: '/ranking', name: 'ranking', component: Ranking },
+    {path: '/series', name :'series-overview', component: SeriesOverview},
 ];
 
 const router = createRouter({
