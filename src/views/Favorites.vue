@@ -325,12 +325,20 @@ export default {
   gap: 10px;
   margin-bottom: 20px;
 }
+/* Responsive Anpassung */
+@media (max-width: 768px) {
+  .movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
 
-.movie-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
 }
+
+@media (min-width: 769px) {
+  .movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
 
 .movie-card {
   background-color: #1a1a1a;

@@ -1,12 +1,13 @@
 <template>
   <header class="app-header">
     <router-link to="/">Home</router-link>
-    <div class="navigation-links">
+    <div class="navigation-links" v-if="!isMobileMenuOpen && !isMobileView">
       <router-link to="/">Filme</router-link>
       <router-link to="/series">Serien</router-link>
       <router-link to="/favorites">Meine Favoriten</router-link>
       <router-link to="/ranking">Rangliste</router-link>
     </div>
+
     <input
         type="text"
         v-model="searchQuery"
@@ -23,9 +24,27 @@
         </button>
       </div>
     </div>
+    <button class="hamburger-button" @click="toggleMobileMenu">
+      ☰
+    </button>
+
+    <!-- Mobile Navigation Menü -->
+    <div class="mobile-menu" v-if="isMobileMenuOpen">
+      <button class="hamburger-button" @click="toggleMobileMenu">
+        ☰
+      </button>
+      <router-link @click="closeMobileMenu" to="/">Filme</router-link>
+      <router-link @click="closeMobileMenu" to="/series">Serien</router-link>
+      <router-link @click="closeMobileMenu" to="/favorites">Meine Favoriten</router-link>
+      <router-link @click="closeMobileMenu" to="/ranking">Rangliste</router-link>
+
+      <button @click="logout">Logout</button>
+    </div>
+
+
+
     <div class="user-info">
-      <span v-if="isLoggedIn">Willkommen, {{ username }}</span>
-      <button v-if="isLoggedIn" @click="logout">Logout</button>
+      <span v-if="isLoggedIn">Willkommen &nbsp, {{ '&nbsp;'+ username + '&nbsp;&nbsp;' }}</span>
     </div>
 
     <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
@@ -35,12 +54,11 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 export default {
   setup() {
-
     const router = useRouter();
     const route = useRoute();
     const isLoggedIn = ref(!!localStorage.getItem('token'));
@@ -50,7 +68,10 @@ export default {
     const selectedGenreName = ref('Alle');
     const showDropdown = ref(false);
     const username = ref(localStorage.getItem('username') || '');
+    const isMobileMenuOpen = ref(false);
+    const isMobileView = ref(window.innerWidth <= 768);
 
+    // Funktion zum Logout
     const logout = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('username');
@@ -58,6 +79,7 @@ export default {
       router.push('/');
     };
 
+    // Funktion zum Aktualisieren der Suchanfrage
     const updateSearchQuery = () => {
       router.push({
         path: '/',
@@ -65,10 +87,22 @@ export default {
       });
     };
 
+    // Funktion zum Umschalten des mobilen Menüs
+    const toggleMobileMenu = () => {
+      isMobileMenuOpen.value = !isMobileMenuOpen.value;
+    };
+
+    // Funktion zum Schließen des mobilen Menüs
+    const closeMobileMenu = () => {
+      isMobileMenuOpen.value = false;
+    };
+
+    // Funktion zum Umschalten des Dropdown-Menüs
     const toggleDropdown = () => {
       showDropdown.value = !showDropdown.value;
     };
 
+    // Funktion zur Auswahl eines Genres
     const selectGenre = (genre) => {
       selectedGenre.value = genre ? genre.id : null;
       selectedGenreName.value = genre ? genre.name : 'Alle';
@@ -87,6 +121,7 @@ export default {
       }
     };
 
+    // Funktion zum Abrufen der Genres
     const fetchGenres = async () => {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
       const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
@@ -94,8 +129,21 @@ export default {
       genres.value = data.genres;
     };
 
+    // Funktion zur Überprüfung der Fenstergröße
+    const handleResize = () => {
+      isMobileView.value = window.innerWidth <= 768;
+      if (!isMobileView.value) {
+        closeMobileMenu(); // Menü schließen, wenn zur Desktop-Ansicht gewechselt wird
+      }
+    };
+
     onMounted(() => {
       fetchGenres();
+      window.addEventListener('resize', handleResize);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize);
     });
 
     return {
@@ -106,31 +154,79 @@ export default {
       selectedGenreName,
       showDropdown,
       username,
+      isMobileMenuOpen,
+      isMobileView,
       logout,
       updateSearchQuery,
       toggleDropdown,
       selectGenre,
+      toggleMobileMenu,
+      closeMobileMenu,
     };
   },
 };
 </script>
 
-<style scoped>
+
+<style>
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #141414;
+  color: white;
+}
+
+.navigation-links {
+  display: flex;
+  gap: 15px;
+}
+
+.search-input {
+  flex: 1;
+  margin: 0 10px;
+  max-width: 200px;
+}
+
+.hamburger-menu {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: white;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 100%;
+  background-color: #1a1a1a;
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 1000;
+}
+
 @media (max-width: 768px) {
-  .app-header {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    background-color: #141414;
-    padding: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  .navigation-links {
+    display: none;
   }
 
-    .search-input {
-      width: 100%;
-      margin-top: 10px;
-    }
+  .hamburger-menu {
+    display: block;
   }
+}
 
 </style>
