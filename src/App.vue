@@ -25,7 +25,7 @@ export default {
 <style>
 /* Grundlegende Layoutanpassungen */
 html, body, #app {
-  margin: 0;
+  margin-top: 10px;
   padding: 0;
   height: 100%;
   width: 100%;

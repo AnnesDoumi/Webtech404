@@ -5,6 +5,7 @@ import path from 'path';
 import authRoutes from './api/auth.js';
 import favoritesRoutes from './api/favorites.js';
 import foldersRoutes from './api/folders.js'; // Ordner-Route importieren
+import seriesFavoritesRouter from './api/seriesFavorites.js';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/folders', foldersRoutes);
+app.use('/api/series-favorites', seriesFavoritesRouter);
 
 
 // Statische Dateien bereitstellen

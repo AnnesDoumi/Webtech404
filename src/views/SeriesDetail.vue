@@ -23,6 +23,9 @@
           ></iframe>
         </div>
         <p v-else>Kein Trailer verfügbar</p>
+
+        <!-- Button zum Hinzufügen zu Favoriten -->
+        <button class="favorite-button" @click="addFavorite">Zu Favoriten hinzufügen</button>
       </div>
     </div>
   </div>
@@ -34,6 +37,7 @@ export default {
     return {
       series: {},
       trailerUrl: '',
+      isLoggedIn: !!localStorage.getItem('token'),
     };
   },
   async mounted() {
@@ -65,14 +69,48 @@ export default {
         const trailer = trailerData.results.find(video => video.type === 'Trailer' && video.site === 'YouTube');
         if (trailer) {
           this.trailerUrl = `https://www.youtube.com/embed/${trailer.key}`;
-        } else {
-          console.log("Kein Trailer gefunden.");
         }
       } catch (error) {
         console.error("Fehler beim Abrufen des Trailers:", error);
       }
     },
-  },
+    async addFavorite() {
+      if (!this.isLoggedIn) {
+        alert("Bitte einloggen, um Serien zu favorisieren.");
+        return;
+      }
+
+      try {
+        const seriesId = this.series.id;
+        console.log("Series ID:", seriesId);
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/series-favorites`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            series_id: seriesId,
+            note: '',
+            folder_id: null,
+          }),
+        });
+
+        if (response.ok) {
+          alert("Serie wurde zu den Favoriten hinzugefügt");
+        } else {
+          const errorData = await response.json();
+          console.error("Fehler beim Hinzufügen der Serien-Favoriten:", errorData.message);
+          alert(errorData.message || "Fehler beim Hinzufügen zu den Serien-Favoriten.");
+        }
+      } catch (error) {
+        console.error("Fehler beim Hinzufügen der Serien-Favoriten:", error);
+        alert("Serverfehler. Bitte versuchen Sie es später erneut.");
+      }
+    }
+    ,
+  }
 };
 </script>
 
@@ -87,15 +125,15 @@ export default {
 }
 
 .series-backdrop {
-  width: 100%;
-  max-width: 800px;
+  width: 80%;
+  max-width: 600px;
   border-radius: 8px;
   margin-bottom: 20px;
 }
 
 .series-content {
   max-width: 600px;
-  text-align: left;
+  text-align: center;
 }
 
 .trailer-container {
@@ -107,5 +145,19 @@ iframe {
   max-width: 600px;
   height: 340px;
   border-radius: 8px;
+}
+
+.favorite-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #646cff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.favorite-button:hover {
+  background-color: #535bf2;
 }
 </style>

@@ -111,50 +111,21 @@ export default {
 </script>
 
 <style scoped>
-.app-header {
-  display: flex;
-  gap: 15px;
-  padding: 10px;
-  background-color: #141414;
-  color: white;
-  justify-content: space-between;
-  align-items: center;
-}
-.dropdown-container {
-  position: relative;
-}
-.dropdown-button {
-  background-color: Green;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+@media (max-width: 768px) {
+  .app-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: #141414;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
 
-.dropdown-menu {
-  display: block;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: #333;
-  color: white;
-  min-width: 160px;
-  border-radius: 5px;
-  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
-}
+    .search-input {
+      width: 100%;
+      margin-top: 10px;
+    }
+  }
 
-.user-menu {
-  cursor: pointer;
-}
-
-.user-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #333;
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-}
 </style>

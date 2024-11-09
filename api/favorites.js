@@ -43,10 +43,16 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Notiz für einen Favoriten aktualisieren
+// Notiz für einen Favoriten aktualisieren
 router.put('/:movieId/note', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const movieId = req.params.movieId;
-    const { note } = req.body;
+    let { note } = req.body;
+
+    // Wenn die Notiz ein leerer String ist, speichere `null`
+    if (note.trim() === "") {
+        note = null;
+    }
 
     try {
         await client.execute(
@@ -59,6 +65,7 @@ router.put('/:movieId/note', authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Fehler beim Aktualisieren der Notiz" });
     }
 });
+
 
 // Film in Ordner verschieben
 router.put('/:movieId/folder', authenticateToken, async (req, res) => {
