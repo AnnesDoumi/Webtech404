@@ -2,23 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "package.json",
+      "src": "vite.config.js",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
       }
     }
   ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/server.js" },
-    { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/src/(.*)", "destination": "/src/$1" },
-    { "source": "/(.*).js", "destination": "/$1.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "status": 200
+    }
   ]
-
 }
