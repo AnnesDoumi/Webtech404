@@ -80,7 +80,6 @@ export default {
       page: 1,
       totalPages: 1,
       searchQuery: '',
-
     };
   },
 
@@ -88,6 +87,7 @@ export default {
     await this.fetchGenres();
     this.fetchMovies();
   },
+
   methods: {
     async fetchGenres() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
@@ -99,39 +99,49 @@ export default {
         console.error("Fehler beim Abrufen der Genres:", error);
       }
     },
+
     async fetchMovies() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
       let url;
 
-      // Überprüfe, ob eine Suchanfrage vorhanden ist
       if (this.searchQuery) {
-        console.log('Suche wird durchgeführt für:', this.searchQuery);
         url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.page}`;
       } else {
-        console.log('Normale Filmabfrage ohne Suchbegriff.');
         url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${this.page}`;
         if (this.selectedGenre) {
           url += `&with_genres=${this.selectedGenre}`;
         }
+        if (this.yearRange) {
+          url += `&primary_release_date.lte=${this.yearRange}-12-31&primary_release_date.gte=${this.minYear}-01-01`;
+        }
+        if (this.sortOption) {
+          url += `&sort_by=${this.sortOption}.${this.sortOrder}`;
+        }
       }
-
-      console.log('API-URL:', url);
 
       try {
         const response = await fetch(url);
         const data = await response.json();
 
-        console.log('API-Antwort:', data);
-
         if (data.results) {
-          this.movies = data.results.filter((movie) => movie.poster_path);
-          this.totalPages = data.total_pages || 1; // Aktualisiere totalPages
-          console.log('Gefundene Filme:', this.movies);
-          console.log('Gesamtseiten:', this.totalPages);
+          const C = 6.5; // Durchschnittliche Bewertung
+          const m = 1000; // Mindestanzahl von Stimmen
+
+          // Berechne die gewichtete Bewertung
+          this.movies = data.results
+              .filter((movie) => movie.poster_path)
+              .map((movie) => {
+                const R = movie.vote_average;
+                const v = movie.vote_count;
+                const weightedRating = (v / (v + m)) * R + (m / (v + m)) * C;
+                return { ...movie, weightedRating };
+              })
+              .sort((a, b) => this.sortOrder === 'asc' ? a.weightedRating - b.weightedRating : b.weightedRating - a.weightedRating);
+
+          this.totalPages = data.total_pages || 1;
         } else {
           this.movies = [];
           this.totalPages = 1;
-          console.warn('Keine Filme gefunden.');
         }
       } catch (error) {
         console.error('Fehler beim Abrufen der Filme:', error);
@@ -139,11 +149,12 @@ export default {
         this.totalPages = 1;
       }
     }
+,
 
-    ,
     toggleDropdown() {
       this.showDropdown = !this.showDropdown;
     },
+
     selectGenre(genre) {
       this.selectedGenre = genre ? genre.id : null;
       this.selectedGenreName = genre ? genre.name : 'Alle';
@@ -151,42 +162,59 @@ export default {
       this.page = 1;
       this.fetchMovies();
     },
+
     toggleSortOrder() {
       this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
       this.fetchMovies();
     },
+
     prevPage() {
       if (this.page > 1) {
         this.page--;
         this.fetchMovies();
       }
     },
+
     nextPage() {
       if (this.page < this.totalPages) {
         this.page++;
         this.fetchMovies();
       }
     },
+
     getMoviePoster(path) {
       return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/500x750?text=No+Image';
     },
   },
+
   watch: {
     '$route.query.search'(newSearch) {
-      console.log('Neue Suchanfrage:', newSearch);
       if (newSearch !== this.searchQuery) {
         this.searchQuery = newSearch;
         this.page = 1;
-        console.log('Suche wird ausgelöst.');
         this.fetchMovies();
       }
     },
+
+    // Beobachte Änderungen an yearRange und fetchMovies
+    yearRange() {
+      this.page = 1;
+      this.fetchMovies();
+    },
+
+    // Beobachte Änderungen an sortOption und sortOrder
+    sortOption() {
+      this.page = 1;
+      this.fetchMovies();
+    },
+    sortOrder() {
+      this.page = 1;
+      this.fetchMovies();
+    },
   },
-
-
-
 };
 </script>
+
 
 <style scoped>
 

@@ -86,11 +86,30 @@ export default {
       try {
         const response = await fetch(url);
         const data = await response.json();
-        this.seriesList = data.results.filter(series => series.poster_path);
+
+        if (data.results) {
+          const C = 6.5; // Durchschnittliche Bewertung
+          const m = 500; // Mindestanzahl von Stimmen
+
+          // Berechne die gewichtete Bewertung
+          this.seriesList = data.results
+              .filter((series) => series.poster_path)
+              .map((series) => {
+                const R = series.vote_average;
+                const v = series.vote_count;
+                const weightedRating = (v / (v + m)) * R + (m / (v + m)) * C;
+                return { ...series, weightedRating };
+              })
+              .sort((a, b) => this.sortOrder === 'asc' ? a.weightedRating - b.weightedRating : b.weightedRating - a.weightedRating);
+        } else {
+          this.seriesList = [];
+        }
       } catch (error) {
         console.error("Fehler beim Abrufen der Serien:", error);
+        this.seriesList = [];
       }
-    },
+    }
+,
     async searchSeries() {
       if (this.searchQuery) {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
