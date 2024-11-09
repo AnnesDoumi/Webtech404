@@ -36,6 +36,18 @@ app.use((req, res, next) => {
     next();
 });
 
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/assets')) {
+        const filePath = path.join(__dirname, 'dist', req.path);
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+            return;
+        }
+    }
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+
 
 app.use((req, res, next) => {
     if (req.path.endsWith('.js')) {
