@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import authRoutes from './api/auth.js';
 import favoritesRoutes from './api/favorites.js';
-import foldersRoutes from './api/folders.js'; // Ordner-Route importieren
+import foldersRoutes from './api/folders.js';
 import seriesFavoritesRouter from './api/seriesFavorites.js';
 
 dotenv.config();
@@ -22,20 +22,11 @@ app.use('/api/favorites', favoritesRoutes);
 app.use('/api/folders', foldersRoutes);
 app.use('/api/series-favorites', seriesFavoritesRouter);
 
-
 // Statische Dateien bereitstellen
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, 'dist')));
 
-
-app.get('*', (req, res, next) => {
-    if (req.accepts('html')) {
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    } else {
-        next();
-    }
-});
-
+// Setze den MIME-Type für JavaScript-Dateien
 app.use((req, res, next) => {
     if (req.path.endsWith('.js')) {
         res.setHeader('Content-Type', 'application/javascript');
@@ -43,24 +34,23 @@ app.use((req, res, next) => {
     next();
 });
 
-
-
-app.use((req, res, next) => {
-    if (req.accepts('html')) {
-        res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+// Fallback für das Frontend: Bediene nur HTML-Anfragen mit `index.html`
+app.get('*', (req, res) => {
+    const acceptHeader = req.headers.accept || '';
+    if (acceptHeader.includes('text/html')) {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     } else {
-        next();
+        res.status(404).send('Not Found');
     }
 });
 
-// Export für Vercel (Serverless Environment)
+// Export für Vercel
 export default app;
 
-// Nur für lokale Entwicklung: Server direkt starten, wenn `NODE_ENV` nicht auf `production` gesetzt ist
+// Server für lokale Entwicklung
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
         console.log(`Server läuft lokal auf Port ${PORT}`);
     });
 }
-
