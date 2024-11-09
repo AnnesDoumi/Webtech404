@@ -36,13 +36,25 @@ app.use((req, res, next) => {
 
 // Fallback für das Frontend: Bediene nur HTML-Anfragen mit `index.html`
 app.get('*', (req, res) => {
-    const acceptHeader = req.headers.accept || '';
-    if (acceptHeader.includes('text/html')) {
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    } else {
-        res.status(404).send('Not Found');
+    if (req.path.startsWith('/assets')) {
+        const filePath = path.join(__dirname, 'dist', req.path);
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+            return;
+        }
     }
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
+
+app.use((req, res, next) => {
+    if (req.path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+    } else if (req.path.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+    }
+    next();
+});
+
 
 // Export für Vercel
 export default app;

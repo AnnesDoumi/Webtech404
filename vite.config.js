@@ -3,9 +3,8 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [vue()],
-  base: './', // Relativer Pfad für Assets
+  base: '/',
   server: {
-    historyApiFallback: true,
     proxy: {
       '/api': {
         target: process.env.VITE_API_BASE_URL || 'http://localhost:5000',
@@ -13,5 +12,9 @@ export default defineConfig({
         secure: false,
       },
     },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
   },
 });
