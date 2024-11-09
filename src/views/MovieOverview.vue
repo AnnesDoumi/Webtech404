@@ -6,15 +6,7 @@
 
     <!-- Suchfunktion -->
 
-    <!-- Kategorien-Dropdown-Menü -->
-    <div class="dropdown">
-      <button class="dropbtn">Kategorien</button>
-      <div class="dropdown-content">
-        <button v-for="genre in genres" :key="genre.id" @click="filterByCategory(genre.id)">
-          {{ genre.name }}
-        </button>
-      </div>
-    </div>
+
 
     <!-- Sortieroptionen -->
     <div class="sort-options">
@@ -43,9 +35,10 @@
     <!-- Paginierung -->
     <div class="pagination">
       <button @click="prevPage" :disabled="page <= 1">Zurück</button>
-      <span>Seite {{ page }}</span>
-      <button @click="nextPage">Weiter</button>
+      <span>Seite {{ page }} von {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="page >= totalPages">Weiter</button>
     </div>
+
   </div>
 </template>
 
@@ -111,6 +104,8 @@ export default {
         this.movies = [];
       }
     },
+
+
     getMoviePoster(path) {
       // Überprüfe, ob der Pfad existiert
       if (!path) {
@@ -120,11 +115,15 @@ export default {
     },
   },
   watch: {
-    // Überwache Änderungen des `search`-Query-Parameters
+    '$route.query.genre'(newGenre) {
+      this.selectedGenre = newGenre || null;
+      this.page = 1;
+      this.fetchMovies();
+    },
     '$route.query.search'(newSearch) {
       this.searchQuery = newSearch || '';
       this.page = 1;
-      this.fetchMovies(); // Rufe fetchMovies erneut auf, wenn sich der Suchbegriff ändert
+      this.fetchMovies();
     },
   },
 };

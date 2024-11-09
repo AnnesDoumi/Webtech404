@@ -2,16 +2,6 @@
   <div class="series-overview">
     <h1>Serien Übersicht</h1>
 
-    <!-- Navigation zu verschiedenen Seiten -->
-    <div class="navigation-links">
-      <router-link to="/">Filme</router-link>
-      <router-link to="/series">Serien</router-link>
-
-      <router-link to="/favorites">Meine Favoriten</router-link>
-      <router-link to="/ranking">Rangliste</router-link>
-      <router-link to="/series">Serien</router-link>
-    </div>
-
     <!-- Suchfunktion -->
     <input
         type="text"
@@ -20,16 +10,6 @@
         @input="searchSeries"
         class="search-input"
     />
-
-    <!-- Kategorien-Dropdown-Menü -->
-    <div class="dropdown">
-      <button class="dropbtn">Kategorien</button>
-      <div class="dropdown-content">
-        <button v-for="genre in genres" :key="genre.id" @click="filterByCategory(genre.id)">
-          {{ genre.name }}
-        </button>
-      </div>
-    </div>
 
     <!-- Sortieroptionen -->
     <div class="sort-options">
@@ -47,11 +27,14 @@
 
     <!-- Serien im Raster anzeigen -->
     <div class="series-grid">
-      <div v-for="series in seriesList" :key="series.id" class="series-card">
-        <router-link :to="{ name: 'series-detail', params: { id: series.id }}">
-          <img :src="getSeriesPoster(series.poster_path)" alt="Series Poster">
-          <h2>{{ series.name }}</h2>
-        </router-link>
+      <div
+          v-for="series in seriesList"
+          :key="series.id"
+          class="series-card"
+          @click="navigateToDetail(series.id)"
+      >
+        <img :src="getSeriesPoster(series.poster_path)" alt="Series Poster">
+        <h2>{{ series.name }}</h2>
       </div>
     </div>
 
@@ -100,9 +83,13 @@ export default {
         url += `&sort_by=${this.sortOption}.${this.sortOrder}`;
       }
 
-      const response = await fetch(url);
-      const data = await response.json();
-      this.seriesList = data.results.filter(series => series.poster_path);
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        this.seriesList = data.results.filter(series => series.poster_path);
+      } catch (error) {
+        console.error("Fehler beim Abrufen der Serien:", error);
+      }
     },
     async searchSeries() {
       if (this.searchQuery) {
@@ -134,21 +121,77 @@ export default {
       }
     },
     getSeriesPoster(path) {
-      return `https://image.tmdb.org/t/p/w500${path}`;
+      if (path) {
+        return `https://image.tmdb.org/t/p/w500${path}`;
+      }
+      return 'https://via.placeholder.com/500x750?text=No+Poster+Available';
+    },
+    navigateToDetail(seriesId) {
+      this.$router.push({ name: 'series-detail', params: { id: seriesId } });
     },
   },
   watch: {
     searchQuery() {
-      this.page = 1;
       this.searchSeries();
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style scoped>
-/* Styling ähnlich wie in der MovieOverview-Komponente */
-.series-overview { padding: 20px; }
-.series-grid { /* Grid styling */ }
-/* (Add the rest of your CSS here, similar to `MovieOverview`) */
+.series-overview {
+  padding: 20px;
+}
+
+.series-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.series-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s;
+}
+
+.series-card:hover {
+  transform: scale(1.05);
+}
+
+.series-card img {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+.sort-options {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  border: none;
+}
 </style>
