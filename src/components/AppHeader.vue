@@ -1,6 +1,8 @@
 <template>
   <header class="app-header">
-    <router-link to="/">Home</router-link>
+    <router-link to="/">
+      <span class="material-icons">home</span>
+    </router-link>
     <div class="navigation-links" v-if="!isMobileMenuOpen && !isMobileView">
       <router-link to="/">Filme</router-link>
       <router-link to="/series">Serien</router-link>
@@ -11,19 +13,12 @@
     <input
         type="text"
         v-model="searchQuery"
-        placeholder="Filme durchsuchen"
+        :placeholder="route.name === 'series-overview' ? 'Serien durchsuchen' : 'Filme durchsuchen'"
         @input="updateSearchQuery"
         class="search-input"
     />
-    <div class="dropdown-container">
-      <button class="dropdown-button" @click="toggleDropdown">{{ selectedGenreName }}</button>
-      <div v-if="showDropdown" class="dropdown-menu">
-        <button @click="selectGenre(null)">Alle</button>
-        <button v-for="genre in genres" :key="genre.id" @click="selectGenre(genre)">
-          {{ genre.name }}
-        </button>
-      </div>
-    </div>
+
+
     <button class="hamburger-button" @click="toggleMobileMenu">
       ☰
     </button>
@@ -44,7 +39,7 @@
 
 
     <div class="user-info">
-      <span v-if="isLoggedIn">Willkommen &nbsp, {{ '&nbsp;'+ username + '&nbsp;&nbsp;' }}</span>
+      <span v-if="isLoggedIn">{{ username + '&nbsp;&nbsp;' }}</span>
     </div>
 
     <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
@@ -70,6 +65,8 @@ export default {
     const username = ref(localStorage.getItem('username') || '');
     const isMobileMenuOpen = ref(false);
     const isMobileView = ref(window.innerWidth <= 768);
+    const currentPage = route && route.name ? route.name : 'home';
+
 
     // Funktion zum Logout
     const logout = () => {
@@ -81,11 +78,27 @@ export default {
 
     // Funktion zum Aktualisieren der Suchanfrage
     const updateSearchQuery = () => {
-      router.push({
-        path: '/',
-        query: { search: searchQuery.value },
-      });
+      const currentPage = route && route.name ? route.name : 'home';
+
+      if (currentPage === 'series-overview') {
+        console.log('Serien-Suche:', searchQuery.value);
+        router.push({
+          path: '/series',
+          query: { search: searchQuery.value },
+        });
+      } else if (currentPage === 'home') {
+        console.log('Film-Suche:', searchQuery.value);
+        router.push({
+          path: '/',
+          query: { search: searchQuery.value },
+        });
+      } else {
+        console.warn('Unbekannte Seite:', currentPage);
+      }
     };
+
+
+
 
     // Funktion zum Umschalten des mobilen Menüs
     const toggleMobileMenu = () => {
@@ -139,8 +152,18 @@ export default {
 
     onMounted(() => {
       fetchGenres();
+      isMobileView.value = window.innerWidth <= 768;
+
+      // Überprüfe die aktuelle Seite und setze den Platzhaltertext entsprechend
+      if (route.name === 'series-overview') {
+        searchQuery.value = '';
+      } else if (route.name === 'movie-overview') {
+        searchQuery.value = '';
+      }
+
       window.addEventListener('resize', handleResize);
     });
+
 
     onUnmounted(() => {
       window.removeEventListener('resize', handleResize);
@@ -162,6 +185,9 @@ export default {
       selectGenre,
       toggleMobileMenu,
       closeMobileMenu,
+      router,
+      route,
+      currentPage,
     };
   },
 };

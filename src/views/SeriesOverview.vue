@@ -3,13 +3,13 @@
     <h1>Serien Übersicht</h1>
 
     <!-- Suchfunktion -->
-    <input
+  <!-- <input
         type="text"
         v-model="searchQuery"
         placeholder="Serien durchsuchen"
         @input="searchSeries"
         class="search-input"
-    />
+    />   -->
 
     <!-- Sortieroptionen -->
     <div class="sort-options">
@@ -131,7 +131,9 @@ export default {
     },
   },
   watch: {
-    searchQuery() {
+    '$route.query.search'(newSearch) {
+      this.searchQuery = newSearch || '';
+      this.page = 1;
       this.searchSeries();
     },
   },
@@ -141,6 +143,7 @@ export default {
 <style scoped>
 .series-overview {
   padding: 20px;
+  margin-top: 20px;
 }
 
 .series-grid {

@@ -2,24 +2,45 @@
   <div class="movie-overview">
     <h1>Filme Übersicht</h1>
 
-    <!-- Navigation zu verschiedenen Seiten -->
+    <!-- Filter Optionen -->
+    <div class="filter-options">
+      <!-- Genre Dropdown -->
+      <div class="dropdown-container">
+        <button class="dropdown-button" @click="toggleDropdown">{{ selectedGenreName }}</button>
+        <div v-if="showDropdown" class="dropdown-menu">
+          <button @click="selectGenre(null)">Alle</button>
+          <button v-for="genre in genres" :key="genre.id" @click="selectGenre(genre)">
+            {{ genre.name }}
+          </button>
+        </div>
+      </div>
 
-    <!-- Suchfunktion -->
+      <!-- Erscheinungsjahr-Regler -->
+      <div class="year-range-filter">
+        <label>Erscheinungsjahr:</label>
+        <input
+            type="range"
+            v-model="yearRange"
+            :min="minYear"
+            :max="maxYear"
+            @input="fetchMovies"
+        />
+        <span>{{ minYear }} - {{ yearRange }}</span>
+      </div>
 
-
-
-    <!-- Sortieroptionen -->
-    <div class="sort-options">
-      <label for="sort">Sortieren nach:</label>
-      <select v-model="sortOption" @change="fetchMovies">
-        <option value="">Standard</option>
-        <option value="release_date">Erscheinungsdatum</option>
-        <option value="vote_count">Stimmenanzahl</option>
-        <option value="title">Alphabetisch</option>
-      </select>
-      <button @click="toggleSortOrder">
-        {{ sortOrder === 'asc' ? 'Aufsteigend' : 'Absteigend' }}
-      </button>
+      <!-- Sortieroptionen -->
+      <div class="sort-options">
+        <label for="sort">Sortieren nach:</label>
+        <select v-model="sortOption" @change="fetchMovies">
+          <option value="">Standard</option>
+          <option value="release_date">Erscheinungsdatum</option>
+          <option value="vote_average">Bewertung</option>
+          <option value="vote_count">Stimmenanzahl</option>
+        </select>
+        <button @click="toggleSortOrder">
+          {{ sortOrder === 'asc' ? 'Aufsteigend' : 'Absteigend' }}
+        </button>
+      </div>
     </div>
 
     <!-- Filme im Raster anzeigen -->
@@ -28,6 +49,7 @@
         <router-link :to="{ name: 'movie-detail', params: { id: movie.id }}">
           <img :src="getMoviePoster(movie.poster_path)" alt="Movie Poster">
           <h2>{{ movie.title }}</h2>
+          <p>Bewertung: {{ movie.vote_average }}</p>
         </router-link>
       </div>
     </div>
@@ -38,7 +60,6 @@
       <span>Seite {{ page }} von {{ totalPages }}</span>
       <button @click="nextPage" :disabled="page >= totalPages">Weiter</button>
     </div>
-
   </div>
 </template>
 
@@ -48,17 +69,22 @@ export default {
     return {
       movies: [],
       genres: [],
-      searchQuery: '',
-      page: 1,
       selectedGenre: null,
+      selectedGenreName: 'Alle',
+      yearRange: new Date().getFullYear(),
+      minYear: 1980,
+      maxYear: new Date().getFullYear(),
       sortOption: '',
       sortOrder: 'asc',
+      showDropdown: false,
+      page: 1,
+      totalPages: 1,
+      searchQuery: '',
+
     };
   },
 
   async mounted() {
-    // Initialisiere den Suchbegriff aus der URL
-    this.searchQuery = this.$route.query.search || '';
     await this.fetchGenres();
     this.fetchMovies();
   },
@@ -77,167 +103,158 @@ export default {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
       let url;
 
-      // Unterscheide zwischen einer normalen Anfrage und einer Suchanfrage
+      // Überprüfe, ob eine Suchanfrage vorhanden ist
       if (this.searchQuery) {
-        // Verwende die Such-API, wenn ein Suchbegriff vorhanden ist
+        console.log('Suche wird durchgeführt für:', this.searchQuery);
         url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.page}`;
       } else {
-        // Verwende die Discover-API, wenn kein Suchbegriff vorhanden ist
+        console.log('Normale Filmabfrage ohne Suchbegriff.');
         url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${this.page}`;
         if (this.selectedGenre) {
           url += `&with_genres=${this.selectedGenre}`;
         }
       }
 
+      console.log('API-URL:', url);
+
       try {
         const response = await fetch(url);
         const data = await response.json();
 
-        // Überprüfe, ob Daten verfügbar sind
+        console.log('API-Antwort:', data);
+
         if (data.results) {
-          this.movies = data.results.filter(movie => movie.poster_path);
+          this.movies = data.results.filter((movie) => movie.poster_path);
+          this.totalPages = data.total_pages || 1; // Aktualisiere totalPages
+          console.log('Gefundene Filme:', this.movies);
+          console.log('Gesamtseiten:', this.totalPages);
         } else {
           this.movies = [];
+          this.totalPages = 1;
+          console.warn('Keine Filme gefunden.');
         }
       } catch (error) {
-        console.error("Fehler beim Abrufen der Filme:", error);
+        console.error('Fehler beim Abrufen der Filme:', error);
         this.movies = [];
+        this.totalPages = 1;
+      }
+    }
+
+    ,
+    toggleDropdown() {
+      this.showDropdown = !this.showDropdown;
+    },
+    selectGenre(genre) {
+      this.selectedGenre = genre ? genre.id : null;
+      this.selectedGenreName = genre ? genre.name : 'Alle';
+      this.showDropdown = false;
+      this.page = 1;
+      this.fetchMovies();
+    },
+    toggleSortOrder() {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+      this.fetchMovies();
+    },
+    prevPage() {
+      if (this.page > 1) {
+        this.page--;
+        this.fetchMovies();
       }
     },
-
-
-    getMoviePoster(path) {
-      // Überprüfe, ob der Pfad existiert
-      if (!path) {
-        return 'https://via.placeholder.com/500x750?text=No+Image';
+    nextPage() {
+      if (this.page < this.totalPages) {
+        this.page++;
+        this.fetchMovies();
       }
-      return `https://image.tmdb.org/t/p/w500${path}`;
+    },
+    getMoviePoster(path) {
+      return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/500x750?text=No+Image';
     },
   },
   watch: {
-    '$route.query.genre'(newGenre) {
-      this.selectedGenre = newGenre || null;
-      this.page = 1;
-      this.fetchMovies();
-    },
     '$route.query.search'(newSearch) {
-      this.searchQuery = newSearch || '';
-      this.page = 1;
-      this.fetchMovies();
+      console.log('Neue Suchanfrage:', newSearch);
+      if (newSearch !== this.searchQuery) {
+        this.searchQuery = newSearch;
+        this.page = 1;
+        console.log('Suche wird ausgelöst.');
+        this.fetchMovies();
+      }
     },
   },
+
+
+
 };
 </script>
 
-
-
-
-
-
 <style scoped>
-.movie-overview {
-  padding: 20px;
+
+.movie-overview{
+  margin-top: 60px;
 }
-.navigation-links {
+
+
+.filter-options {
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 20px;
 }
 
-/* Dropdown Menü Styling */
-.dropdown {
+.dropdown-container {
   position: relative;
-  display: inline-block;
-  margin-bottom: 20px;
 }
-.dropbtn {
-  background-color: #1a1a1a;
+
+.dropdown-button {
+  background-color: #444;
   color: white;
   padding: 10px;
-  font-size: 16px;
   border: none;
   cursor: pointer;
+  border-radius: 5px;
 }
-.dropdown-content {
-  display: none;
+
+.dropdown-menu {
   position: absolute;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
+  background-color: #222;
+  border: 1px solid #444;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
 }
-.dropdown-content button {
-  color: black;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  width: 100%;
-  text-align: left;
+
+.dropdown-menu button {
   background: none;
   border: none;
-  cursor: pointer;
-}
-.dropdown-content button:hover {background-color: #ddd;}
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-.dropdown:hover .dropbtn {
-  background-color: #3e8e41;
+  color: white;
+  padding: 10px;
+  text-align: left;
+  width: 100%;
 }
 
-/* Sortieroptionen Styling */
+.year-range-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .sort-options {
   display: flex;
-  align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
-/* Grid für Filme */
 .movie-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 }
-.movie-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  background-color: #1a1a1a;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s;
-}
-.movie-card:hover {
-  transform: scale(1.05);
-}
-.movie-card img {
-  width: 100%;
-  height: auto;
-  max-height: 300px;
-  object-fit: cover;
-}
 
-/* Pagination styling */
 .pagination {
   display: flex;
   justify-content: center;
   gap: 20px;
   margin-top: 20px;
-}
-
-/* Responsive Anpassung */
-@media (max-width: 768px) {
-  .movie-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .movie-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 </style>
