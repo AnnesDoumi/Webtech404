@@ -32,6 +32,15 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
+
+app.use((req, res, next) => {
+    if (req.accepts('html')) {
+        res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+    } else {
+        next();
+    }
+});
+
 // Export für Vercel (Serverless Environment)
 export default app;
 
