@@ -26,34 +26,26 @@ app.use('/api/series-favorites', seriesFavoritesRouter);
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Setze den MIME-Type für JavaScript-Dateien
+// Setze der MIME-Type für JavaScript-Dateien
 app.use((req, res, next) => {
     if (req.path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-    }
-    next();
-});
-
-// Fallback für das Frontend: Bediene nur HTML-Anfragen mit `index.html`
-app.get('*', (req, res) => {
-    if (req.path.startsWith('/assets')) {
-        const filePath = path.join(__dirname, 'dist', req.path);
-        if (fs.existsSync(filePath)) {
-            res.sendFile(filePath);
-            return;
-        }
-    }
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
-app.use((req, res, next) => {
-    if (req.path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
+        res.type('application/javascript');
     } else if (req.path.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
+        res.type('text/css');
     }
     next();
 });
+
+
+app.use((req, res, next) => {
+    if (req.path.endsWith('.js')) {
+        res.type('application/javascript');
+    } else if (req.path.endsWith('.css')) {
+        res.type('text/css');
+    }
+    next();
+});
+
 
 
 // Export für Vercel
