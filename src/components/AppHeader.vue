@@ -23,6 +23,10 @@
         </button>
       </div>
     </div>
+    <div class="user-info">
+      <span v-if="isLoggedIn">Willkommen, {{ username }}</span>
+      <button v-if="isLoggedIn" @click="logout">Logout</button>
+    </div>
 
     <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
     <router-link v-if="!isLoggedIn" to="/register">Registrieren</router-link>
@@ -36,6 +40,7 @@ import { useRouter, useRoute } from 'vue-router';
 
 export default {
   setup() {
+
     const router = useRouter();
     const route = useRoute();
     const isLoggedIn = ref(!!localStorage.getItem('token'));

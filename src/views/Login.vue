@@ -39,6 +39,8 @@ export default {
 
         const data = await response.json();
         localStorage.setItem('token', data.token);
+        localStorage.setItem('username', this.username);
+
         this.$router.push('/').then(() => window.location.reload());
       } catch (error) {
         console.error("Fehler beim Login:", error);
