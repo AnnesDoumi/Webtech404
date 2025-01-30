@@ -9,6 +9,8 @@ import Favorites from '../views/Favorites.vue';
 import Ranking from '../views/Ranking.vue';
 import SeriesOverview from "../views/SeriesOverview.vue";
 import SeriesDetail from '../views/SeriesDetail.vue'
+import CategoryDetail from '../views/CategoryDetail.vue'; // Falls noch nicht vorhanden
+
 const routes = [
     {path: '/', name: 'home', component: MovieOverview},
     {path: '/movies/:id', name: 'movie-detail', component: MovieDetail, props: true},
@@ -19,6 +21,8 @@ const routes = [
     {path: '/favorites', name: 'favorites', component: Favorites},
     {path: '/ranking', name: 'ranking', component: Ranking},
     {path: '/series', name: 'series-overview', component: SeriesOverview},
+    { path: '/categories/:id', name: 'category-detail', component: CategoryDetail, props: true }, // WICHTIG!
+
     {
         path: '/series/:id',
         name: 'series-detail',

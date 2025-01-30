@@ -113,7 +113,7 @@ export default {
     async searchSeries() {
       if (this.searchQuery) {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const response = await fetch(`https://api.themoviedb.org/3/search/tv?api_key=${apiKey}&query=${this.searchQuery}&page=${this.page}`);
+        const response = await fetch(`https://api.themoviedb.org/3/search/tv?api_key=${apiKey}&query=${this.searchQuery}&page=${this.page}&without_genres=18`);
         const data = await response.json();
         this.seriesList = data.results.filter(series => series.poster_path);
       } else {

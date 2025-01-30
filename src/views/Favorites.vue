@@ -2,6 +2,22 @@
   <div class="favorites">
     <h1>Meine Favoriten</h1>
 
+    <!-- Kategorie-Verwaltung -->
+    <div class="category-management">
+      <h2>Kategorien</h2>
+      <div v-if="categories.length">
+        <ul>
+          <li v-for="category in categories" :key="category.id">
+            <router-link :to="{ name: 'category-detail', params: { id: category.id }}">
+              {{ category.name }} ({{ category.count }})
+            </router-link>
+            <button @click="deleteCategory(category.id)">🗑</button>
+          </li>
+        </ul>
+      </div>
+      <input type="text" v-model="newCategoryName" placeholder="Neue Kategorie hinzufügen">
+      <button @click="addCategory">Hinzufügen</button>
+    </div>
     <!-- Such- und Filterfunktion -->
     <div class="search-filter">
       <input v-model="searchQuery" placeholder="Suche nach Titel, Genre oder Notiz"/>
@@ -33,6 +49,14 @@
                 ref="noteInput"
             ></textarea>
           </div>
+          <!-- Dropdown zum Zuweisen einer Kategorie -->
+          <select v-model="element.selectedCategory" @change="assignToCategory(element.id, element.selectedCategory)">
+            <option value="">Kategorie wählen</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+
           <button @click="deleteFavorite(element, 'movie')">Löschen</button>
         </div>
       </template>
@@ -61,6 +85,7 @@
       </template>
     </draggable>
   </div>
+
 </template>
 
 <script>
@@ -82,6 +107,8 @@ export default {
       genreFilter: "",
       genres: [],
       draggedMovie: null,
+      categories: [],
+      newCategoryName: '',
     };
   },
   computed: {
@@ -97,16 +124,8 @@ export default {
       ];
       return allYears.sort();
     },
-    displayedMovies() {
-      return this.currentFolder
-          ? this.moviesInFolders.filter((movie) => movie.folder_id === this.currentFolder.id)
-          : this.favorites;
-    },
-    displayedSeries() {
-      return this.currentFolder
-          ? this.seriesInFolders.filter((series) => series.folder_id === this.currentFolder.id)
-          : this.seriesFavorites;
-    },
+
+
   },
   methods: {
     filterItems(items) {
@@ -130,6 +149,9 @@ export default {
       }
       return filtered;
     },
+
+
+
     async fetchFavorites() {
       try {
         const folderResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/folders`, {
@@ -169,30 +191,6 @@ export default {
     }
     ,
 
-    async createFolder() {
-      if (!this.newFolderName) return;
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/folders`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({name: this.newFolderName}),
-        });
-        const newFolder = await response.json();
-        this.folders.push(newFolder);
-        this.newFolderName = "";
-      } catch (error) {
-        console.error("Fehler beim Erstellen des Ordners:", error);
-      }
-    }
-    ,
-
-    selectFolder(folderId) {
-      this.currentFolder = folderId ? this.folders.find((folder) => folder.id === folderId) : null;
-    }
-    ,
     async fetchDetails(id, type, note) {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
       try {
@@ -239,6 +237,50 @@ export default {
       }
     }
     ,
+
+    async fetchCategories() {
+      const response = await fetch('/api/favoritesCategories', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      this.categories = await response.json();
+    },
+    async addCategory() {
+      if (!this.newCategoryName.trim()) return;
+
+      const response = await fetch('/api/favoritesCategories', { // STELLE SICHER, DASS DER ENDPOINT KORREKT IST!
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ name: this.newCategoryName })
+      });
+
+      if (!response.ok) {
+        console.error('Fehler beim Erstellen der Kategorie:', await response.text());
+        return;
+      }
+
+      this.newCategoryName = '';
+      await this.fetchCategories();
+    }
+,
+
+    
+    async deleteCategory(categoryId) {
+      await fetch(`/api/favoritesCategories/${categoryId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      await this.fetchCategories();
+    },
+    async assignToCategory(favId, categoryId) {
+      await fetch(`/api/favoritesCategories/${categoryId}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ entryId: favId, type: 'movie' }),
+      });
+      await this.fetchFavorites();
+    },
+
     onDragStart(item) {
       this.draggedMovie = item;
     },
@@ -262,27 +304,9 @@ export default {
       }
     },
 
-    async deleteFolder(folderId) {
-      try {
-        await fetch(`${import.meta.env.VITE_API_BASE_URL}/folders/${folderId}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        this.fetchFavorites();
-      } catch (error) {
-        console.error("Fehler beim Löschen des Ordners:", error);
-      }
-    }
-
-    ,
-    onFolderDrop(folderId) {
-      this.currentFolder = folderId ? this.folders.find((folder) => folder.id === folderId) : null;
-    }
 
 
-    ,
+
     async deleteFavorite(item, type) {
       const endpoint = type === "movie" ? "favorites" : "series-favorites";
       try {
@@ -292,7 +316,7 @@ export default {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        this.fetchFavorites();
+        await this.fetchFavorites();
       } catch (error) {
         console.error("Fehler beim Löschen des Favoriten:", error);
       }
@@ -309,6 +333,7 @@ export default {
   },
   mounted() {
     this.fetchFavorites();
+    this.fetchCategories();
   },
 };
 

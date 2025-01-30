@@ -6,6 +6,7 @@ self.addEventListener('install', (event) => {
                 '/index.html',
                 '/manifest.json',
                 '/styles.css',
+                '/offline.html',
                 '/icons/icon-192x192.png',
                 '/icons/icon-512x512.png'
             ]);
@@ -15,8 +16,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
+        fetch(event.request).catch(() => caches.match('/offline.html'))
     );
-});
+});;
+

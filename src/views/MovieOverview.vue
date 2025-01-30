@@ -1,6 +1,6 @@
 <template>
   <div class="movie-overview">
-    <h1>Filme Übersicht</h1>
+    <h1>Filme Übersicht </h1>
 
     <!-- Filter Optionen -->
     <div class="filter-options">
@@ -15,17 +15,12 @@
         </div>
       </div>
 
-      <!-- Erscheinungsjahr-Regler -->
-      <div class="year-range-filter">
-        <label>Erscheinungsjahr:</label>
-        <input
-            type="range"
-            v-model="yearRange"
-            :min="minYear"
-            :max="maxYear"
-            @input="fetchMovies"
-        />
-        <span>{{ minYear }} - {{ yearRange }}</span>
+      <!-- Filter Optionen -->
+      <div class="filter-options">
+        <label>Startjahr:</label>
+        <input type="number" v-model="startYear" @change="fetchMovies()" min="1900" max="2024"/>
+        <label>Endjahr:</label>
+        <input type="number" v-model="endYear" @change="fetchMovies()" min="1900" max="2024"/>
       </div>
 
       <!-- Sortieroptionen -->
@@ -72,8 +67,8 @@ export default {
       selectedGenre: null,
       selectedGenreName: 'Alle',
       yearRange: new Date().getFullYear(),
-      minYear: 1980,
-      maxYear: new Date().getFullYear(),
+      startYear: 1900,
+      endYear: new Date().getFullYear(),
       sortOption: '',
       sortOrder: 'asc',
       showDropdown: false,
@@ -85,14 +80,14 @@ export default {
 
   async mounted() {
     await this.fetchGenres();
-    this.fetchMovies();
+    await this.fetchMovies();
   },
 
   methods: {
     async fetchGenres() {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY;
       try {
-        const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
+        const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&adult=false`);
         const data = await response.json();
         this.genres = data.genres;
       } catch (error) {
@@ -105,14 +100,14 @@ export default {
       let url;
 
       if (this.searchQuery) {
-        url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.page}`;
+        url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&adult=false&query=${encodeURIComponent(this.searchQuery)}&page=${this.page}`;
       } else {
-        url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${this.page}`;
+        url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&adult=false&page=${this.page}`;
         if (this.selectedGenre) {
           url += `&with_genres=${this.selectedGenre}`;
         }
-        if (this.yearRange) {
-          url += `&primary_release_date.lte=${this.yearRange}-12-31&primary_release_date.gte=${this.minYear}-01-01`;
+        if (this.startYear && this.endYear) {
+          url += `&primary_release_date.gte=${this.startYear}-01-01&primary_release_date.lte=${this.endYear}-12-31`;
         }
         if (this.sortOption) {
           url += `&sort_by=${this.sortOption}.${this.sortOrder}`;

@@ -6,6 +6,7 @@ import authRoutes from './api/auth.js';
 import favoritesRoutes from './api/favorites.js';
 import foldersRoutes from './api/folders.js';
 import seriesFavoritesRouter from './api/seriesFavorites.js';
+import favoritesCategoriesRoutes from './api/favoritesCategories.js'; // STELLE SICHER, DASS DAS IMPORTIERT IST!
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/folders', foldersRoutes);
 app.use('/api/series-favorites', seriesFavoritesRouter);
+app.use('/api/favoritesCategories', favoritesCategoriesRoutes);
 
 // Statische Dateien bereitstellen
 const __dirname = path.resolve();
