@@ -1,18 +1,24 @@
 <template>
-  <div class="auth-container">
-    <h1>Registrieren</h1>
-    <form @submit.prevent="register">
-      <input type="text" v-model="username" placeholder="Benutzername" required />
-      <input type="email" v-model="email" placeholder="E-Mail" required />
-      <input type="password" v-model="password" placeholder="Passwort" required />
-      <button type="submit">Registrieren</button>
-    </form>
-    <p>Bereits einen Account? <router-link to="/login">Login</router-link></p>
-  </div>
+  <section class="auth-container">
+    <div class="auth-card">
+      <h1>Registrieren</h1>
+      <p class="page-subtitle">Erstelle einen Account, um Favoriten zu speichern und eigene Kategorien zu verwalten.</p>
+
+      <form @submit.prevent="register">
+        <input type="text" v-model="username" placeholder="Benutzername" required />
+        <input type="email" v-model="email" placeholder="E-Mail" required />
+        <input type="password" v-model="password" placeholder="Passwort" required />
+        <button type="submit">Registrieren</button>
+      </form>
+
+      <p>Bereits einen Account? <router-link to="/login">Login</router-link></p>
+    </div>
+  </section>
 </template>
 
 <script>
 export default {
+  name: 'RegisterView',
   data() {
     return {
       username: '',
@@ -23,9 +29,7 @@ export default {
   methods: {
     async register() {
       try {
-        // Dynamische URL basierend auf Umgebung
         const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/auth/register`;
-
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -38,30 +42,17 @@ export default {
 
         const data = await response.json();
         if (response.ok) {
-          alert("Registrierung erfolgreich.");
+          alert('Registrierung erfolgreich.');
           this.$router.push('/login');
         } else {
-          console.error("Registrierungsfehler:", data);
+          console.error('Registrierungsfehler:', data);
           alert(`Registrierung fehlgeschlagen: ${data.message}`);
         }
       } catch (error) {
-        console.error("Fehler bei der Anfrage:", error);
-        alert("Serverfehler. Bitte versuchen Sie es später erneut.");
+        console.error('Fehler bei der Anfrage:', error);
+        alert('Serverfehler. Bitte versuchen Sie es später erneut.');
       }
     },
   },
 };
 </script>
-
-<style scoped>
-.auth-container {
-  padding: 20px;
-  text-align: center;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-</style>

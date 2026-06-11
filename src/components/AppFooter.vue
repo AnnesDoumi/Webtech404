@@ -1,34 +1,62 @@
 <template>
   <footer class="app-footer">
-    <p>© 2024 Filmbewertungsplattform - Alle Rechte vorbehalten</p>
-    <nav>
-      <ul>
-        <li><router-link to="/impressum">Impressum</router-link></li>
-        <li><router-link to="/kontakt">Kontakt</router-link></li>
-      </ul>
-    </nav>
+    <div class="app-footer__inner app-footer__custom">
+      <div>
+        <p class="app-footer__headline">© 2026 Filmbewertungsplattform</p>
+        <p>Filme, Serien und Favoriten in einer klareren, responsiven Oberfläche.</p>
+      </div>
+
+      <nav class="app-footer__nav" aria-label="Footer Navigation">
+        <router-link to="/impressum">Impressum</router-link>
+        <router-link to="/kontakt">Kontakt</router-link>
+      </nav>
+    </div>
   </footer>
 </template>
 
 <script>
 export default {
-  name: "AppFooter",
+  name: 'AppFooter',
 };
 </script>
 
 <style scoped>
-.app-footer {
-  background-color: #141414;
-  padding: 20px;
-  text-align: center;
-  color: #fff;
-  align-content: end;
-
-}
-nav ul {
-  list-style-type: none;
+.app-footer__custom {
   display: flex;
-  justify-content: center;
-  gap: 15px;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.app-footer__headline {
+  margin: 0 0 var(--space-2);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.app-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.app-footer__nav a {
+  color: var(--text-muted);
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.app-footer__nav a:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 720px) {
+  .app-footer__custom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

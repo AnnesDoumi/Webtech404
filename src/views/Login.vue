@@ -1,17 +1,23 @@
 <template>
-  <div class="auth-container">
-    <h1>Login</h1>
-    <form @submit.prevent="login">
-      <input type="text" v-model="username" placeholder="Benutzername" required />
-      <input type="password" v-model="password" placeholder="Passwort" required />
-      <button type="submit">Einloggen</button>
-    </form>
-    <p>Noch keinen Account? <router-link to="/register">Registrieren</router-link></p>
-  </div>
+  <section class="auth-container">
+    <div class="auth-card">
+      <h1>Login</h1>
+      <p class="page-subtitle">Melde dich an, um Favoriten, Kategorien und persönliche Listen zu verwalten.</p>
+
+      <form @submit.prevent="login">
+        <input type="text" v-model="username" placeholder="Benutzername" required />
+        <input type="password" v-model="password" placeholder="Passwort" required />
+        <button type="submit">Einloggen</button>
+      </form>
+
+      <p>Noch keinen Account? <router-link to="/register">Registrieren</router-link></p>
+    </div>
+  </section>
 </template>
 
 <script>
 export default {
+  name: 'LoginView',
   data() {
     return {
       username: '',
@@ -21,9 +27,7 @@ export default {
   methods: {
     async login() {
       try {
-        // Dynamische URL basierend auf Umgebung
         const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/auth/login`;
-
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -32,33 +36,20 @@ export default {
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error("Login-Fehler:", response.status, response.statusText, errorData.message || errorData);
-          alert(errorData.message || "Login fehlgeschlagen.");
+          console.error('Login-Fehler:', response.status, response.statusText, errorData.message || errorData);
+          alert(errorData.message || 'Login fehlgeschlagen.');
           return;
         }
 
         const data = await response.json();
         localStorage.setItem('token', data.token);
         localStorage.setItem('username', this.username);
-
         this.$router.push('/').then(() => window.location.reload());
       } catch (error) {
-        console.error("Fehler beim Login:", error);
-        alert("Serverfehler. Bitte versuchen Sie es später erneut.");
+        console.error('Fehler beim Login:', error);
+        alert('Serverfehler. Bitte versuchen Sie es später erneut.');
       }
     },
   },
 };
 </script>
-
-<style scoped>
-.auth-container {
-  padding: 20px;
-  text-align: center;
-}
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-</style>

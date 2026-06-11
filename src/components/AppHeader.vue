@@ -1,258 +1,277 @@
 <template>
   <header class="app-header">
-    <router-link to="/">
-      <span class="material-icons">home</span>
-    </router-link>
-    <div class="navigation-links" v-if="!isMobileMenuOpen && !isMobileView">
-      <router-link to="/">Filme</router-link>
-      <router-link to="/series">Serien</router-link>
-      <router-link to="/favorites">Meine Favoriten</router-link>
-      <router-link to="/ranking">Rangliste</router-link>
+    <div class="app-header__inner">
+      <div class="app-header__top">
+        <router-link to="/" class="brand" aria-label="Startseite">
+          <span class="brand__mark">C</span>
+          <span>CineScope</span>
+        </router-link>
+
+        <div class="header-actions desktop-auth" v-if="!isMobileView">
+          <span v-if="isLoggedIn" class="user-pill">{{ username }}</span>
+          <router-link v-if="!isLoggedIn" to="/login" class="nav-action">Login</router-link>
+          <router-link v-if="!isLoggedIn" to="/register" class="nav-action">Registrieren</router-link>
+          <button v-if="isLoggedIn" class="nav-action" @click="logout">Logout</button>
+        </div>
+
+        <button class="hamburger-button nav-action" @click="toggleMobileMenu" :aria-expanded="isMobileMenuOpen">
+          {{ isMobileMenuOpen ? '✕' : '☰' }}
+        </button>
+      </div>
+
+      <div class="app-header__bottom" v-if="!isMobileView">
+        <nav class="navigation-links" aria-label="Hauptnavigation">
+          <router-link to="/">Filme</router-link>
+          <router-link to="/series">Serien</router-link>
+          <router-link to="/favorites">Meine Favoriten</router-link>
+          <router-link to="/ranking">Rangliste</router-link>
+        </nav>
+
+        <div class="header-search">
+          <input
+              type="text"
+              v-model="searchQuery"
+              :placeholder="searchPlaceholder"
+              @input="updateSearchQuery"
+              class="search-input"
+          />
+        </div>
+      </div>
     </div>
 
-    <input
-        type="text"
-        v-model="searchQuery"
-        :placeholder="route.name === 'series-overview' ? 'Serien durchsuchen' : 'Filme durchsuchen'"
-        @input="updateSearchQuery"
-        class="search-input"
-    />
+    <transition name="fade-slide">
+      <div class="mobile-menu" v-if="isMobileMenuOpen">
+        <div class="mobile-menu__inner">
+          <div class="mobile-menu__top">
+            <span class="brand">
+              <span class="brand__mark">C</span>
+              <span>Menü</span>
+            </span>
+            <button class="nav-action" @click="closeMobileMenu">Schließen</button>
+          </div>
 
+          <input
+              type="text"
+              v-model="searchQuery"
+              :placeholder="searchPlaceholder"
+              @input="updateSearchQuery"
+              class="search-input"
+          />
 
-    <button class="hamburger-button" @click="toggleMobileMenu">
-      ☰
-    </button>
+          <nav class="mobile-menu__nav">
+            <router-link @click="closeMobileMenu" to="/">Filme</router-link>
+            <router-link @click="closeMobileMenu" to="/series">Serien</router-link>
+            <router-link @click="closeMobileMenu" to="/favorites">Meine Favoriten</router-link>
+            <router-link @click="closeMobileMenu" to="/ranking">Rangliste</router-link>
+          </nav>
 
-    <!-- Mobile Navigation Menü -->
-    <div class="mobile-menu" v-if="isMobileMenuOpen">
-      <button class="hamburger-button" @click="toggleMobileMenu">
-        ☰
-      </button>
-      <router-link @click="closeMobileMenu" to="/">Filme</router-link>
-      <router-link @click="closeMobileMenu" to="/series">Serien</router-link>
-      <router-link @click="closeMobileMenu" to="/favorites">Meine Favoriten</router-link>
-      <router-link @click="closeMobileMenu" to="/ranking">Rangliste</router-link>
-
-      <button @click="logout">Logout</button>
-    </div>
-
-
-
-    <div class="user-info">
-      <span v-if="isLoggedIn">{{ username + '&nbsp;&nbsp;' }}</span>
-    </div>
-
-    <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
-    <router-link v-if="!isLoggedIn" to="/register">Registrieren</router-link>
-    <button v-if="isLoggedIn" @click="logout">Logout</button>
+          <div class="mobile-menu__auth">
+            <span v-if="isLoggedIn" class="user-pill">{{ username }}</span>
+            <router-link v-if="!isLoggedIn" @click="closeMobileMenu" to="/login" class="nav-action">Login</router-link>
+            <router-link v-if="!isLoggedIn" @click="closeMobileMenu" to="/register" class="nav-action">Registrieren</router-link>
+            <button v-if="isLoggedIn" class="nav-action" @click="logout">Logout</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </header>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 export default {
+  name: 'AppHeader',
   setup() {
     const router = useRouter();
     const route = useRoute();
     const isLoggedIn = ref(!!localStorage.getItem('token'));
-    const searchQuery = ref('');
-    const genres = ref([]);
-    const selectedGenre = ref(null);
-    const selectedGenreName = ref('Alle');
-    const showDropdown = ref(false);
     const username = ref(localStorage.getItem('username') || '');
+    const searchQuery = ref(typeof route.query.search === 'string' ? route.query.search : '');
     const isMobileMenuOpen = ref(false);
-    const isMobileView = ref(window.innerWidth <= 768);
-    const currentPage = route && route.name ? route.name : 'home';
+    const isMobileView = ref(window.innerWidth <= 920);
 
+    const syncAuthState = () => {
+      isLoggedIn.value = !!localStorage.getItem('token');
+      username.value = localStorage.getItem('username') || '';
+    };
 
-    // Funktion zum Logout
     const logout = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('username');
-      isLoggedIn.value = false;
+      syncAuthState();
+      isMobileMenuOpen.value = false;
       router.push('/');
     };
 
-    // Funktion zum Aktualisieren der Suchanfrage
-    const updateSearchQuery = () => {
-      const currentPage = route && route.name ? route.name : 'home';
+    const searchPlaceholder = computed(() => {
+      return route.name === 'series-overview' ? 'Serien durchsuchen' : 'Filme durchsuchen';
+    });
 
+    const updateSearchQuery = () => {
+      const currentPage = route?.name || 'home';
       if (currentPage === 'series-overview') {
-        console.log('Serien-Suche:', searchQuery.value);
-        router.push({
-          path: '/series',
-          query: { search: searchQuery.value },
-        });
-      } else if (currentPage === 'home') {
-        console.log('Film-Suche:', searchQuery.value);
-        router.push({
-          path: '/',
-          query: { search: searchQuery.value },
-        });
+        router.push({ path: '/series', query: { ...route.query, search: searchQuery.value || undefined } });
       } else {
-        console.warn('Unbekannte Seite:', currentPage);
+        router.push({ path: '/', query: { ...route.query, search: searchQuery.value || undefined } });
       }
     };
 
-
-
-
-    // Funktion zum Umschalten des mobilen Menüs
     const toggleMobileMenu = () => {
       isMobileMenuOpen.value = !isMobileMenuOpen.value;
     };
 
-    // Funktion zum Schließen des mobilen Menüs
     const closeMobileMenu = () => {
       isMobileMenuOpen.value = false;
     };
 
-    // Funktion zum Umschalten des Dropdown-Menüs
-    const toggleDropdown = () => {
-      showDropdown.value = !showDropdown.value;
-    };
-
-    // Funktion zur Auswahl eines Genres
-    const selectGenre = (genre) => {
-      selectedGenre.value = genre ? genre.id : null;
-      selectedGenreName.value = genre ? genre.name : 'Alle';
-      showDropdown.value = false;
-
-      // Dynamische Filterung basierend auf der aktuellen Seite
-      const currentPage = route.name;
-      if (currentPage === 'home') {
-        router.push({ path: '/', query: { genre: selectedGenre.value } });
-      } else if (currentPage === 'ranking') {
-        router.push({ path: '/ranking', query: { genre: selectedGenre.value } });
-      } else if (currentPage === 'favorites') {
-        router.push({ path: '/favorites', query: { genre: selectedGenre.value } });
-      } else if (currentPage === 'series-overview') {
-        router.push({ path: '/series', query: { genre: selectedGenre.value } });
-      }
-    };
-
-    // Funktion zum Abrufen der Genres
-    const fetchGenres = async () => {
-      const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      const response = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
-      const data = await response.json();
-      genres.value = data.genres;
-    };
-
-    // Funktion zur Überprüfung der Fenstergröße
     const handleResize = () => {
-      isMobileView.value = window.innerWidth <= 768;
-      if (!isMobileView.value) {
-        closeMobileMenu(); // Menü schließen, wenn zur Desktop-Ansicht gewechselt wird
-      }
+      isMobileView.value = window.innerWidth <= 920;
+      if (!isMobileView.value) closeMobileMenu();
     };
+
+    watch(
+        () => route.fullPath,
+        () => {
+          searchQuery.value = typeof route.query.search === 'string' ? route.query.search : '';
+          syncAuthState();
+        }
+    );
 
     onMounted(() => {
-      fetchGenres();
-      isMobileView.value = window.innerWidth <= 768;
-
-      // Überprüfe die aktuelle Seite und setze den Platzhaltertext entsprechend
-      if (route.name === 'series-overview') {
-        searchQuery.value = '';
-      } else if (route.name === 'movie-overview') {
-        searchQuery.value = '';
-      }
-
+      syncAuthState();
       window.addEventListener('resize', handleResize);
+      window.addEventListener('storage', syncAuthState);
     });
-
 
     onUnmounted(() => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('storage', syncAuthState);
     });
 
     return {
       isLoggedIn,
-      searchQuery,
-      genres,
-      selectedGenre,
-      selectedGenreName,
-      showDropdown,
       username,
+      searchQuery,
       isMobileMenuOpen,
       isMobileView,
+      searchPlaceholder,
       logout,
       updateSearchQuery,
-      toggleDropdown,
-      selectGenre,
       toggleMobileMenu,
       closeMobileMenu,
-      router,
-      route,
-      currentPage,
     };
   },
 };
 </script>
 
-
-<style>
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  background-color: #141414;
-  color: white;
+<style scoped>
+.hamburger-button {
+  display: none;
 }
 
-.navigation-links {
+.app-header__top,
+.app-header__bottom,
+.header-actions,
+.header-search,
+.mobile-menu__top,
+.mobile-menu__nav,
+.mobile-menu__auth {
   display: flex;
-  gap: 15px;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-header__top {
+  justify-content: space-between;
+}
+
+.app-header__bottom {
+  justify-content: space-between;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.header-search {
+  width: min(100%, 320px);
 }
 
 .search-input {
-  flex: 1;
-  margin: 0 10px;
-  max-width: 200px;
+  width: 100%;
 }
 
-.hamburger-menu {
-  display: none;
-  font-size: 24px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  color: white;
-}
-
-.user-info {
-  display: flex;
+.user-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
 }
 
 .mobile-menu {
   position: fixed;
-  top: 0;
-  right: 0;
-  width: 200px;
-  height: 100%;
-  background-color: #1a1a1a;
-  color: white;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  z-index: 1000;
+  inset: 0;
+  background: rgba(6, 10, 18, 0.62);
+  backdrop-filter: blur(10px);
+  z-index: 1200;
+  display: grid;
+  justify-items: end;
 }
 
-@media (max-width: 768px) {
-  .navigation-links {
+.mobile-menu__inner {
+  width: min(100%, 360px);
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #11192a 0%, #0c1321 100%);
+  border-left: 1px solid var(--border);
+  padding: var(--space-5);
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  box-shadow: var(--shadow-lg);
+}
+
+.mobile-menu__top {
+  justify-content: space-between;
+}
+
+.mobile-menu__nav,
+.mobile-menu__auth {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.mobile-menu__nav a,
+.mobile-menu__auth .nav-action,
+.mobile-menu__auth button {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 920px) {
+  .desktop-auth,
+  .app-header__bottom {
     display: none;
   }
 
-  .hamburger-menu {
-    display: block;
+  .hamburger-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
-
 </style>
