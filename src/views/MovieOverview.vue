@@ -1,22 +1,41 @@
 <template>
   <section class="catalog-page">
-    <div class="catalog-page__hero" v-if="heroItem">
-      <HeroSpotlight :item="heroItem" />
+    <div v-if="!searchQuery && spotlightItems.length" class="catalog-page__hero">
+      <div
+          class="spotlight-shell"
+          @mouseenter="pauseSpotlight"
+          @mouseleave="resumeSpotlight"
+      >
+        <transition name="spotlight-fade" mode="out-in">
+          <HeroSpotlight
+              :key="activeSpotlight.id"
+              :item="activeSpotlight"
+          />
+        </transition>
+
+        <button
+            class="spotlight-nav spotlight-nav--prev"
+            type="button"
+            @click="goToPreviousSpotlight"
+            aria-label="Vorheriger Spotlight-Film"
+        >
+          ‹
+        </button>
+
+        <button
+            class="spotlight-nav spotlight-nav--next"
+            type="button"
+            @click="goToNextSpotlight"
+            aria-label="Nächster Spotlight-Film"
+        >
+          ›
+        </button>
+      </div>
     </div>
 
     <div class="catalog-page__header">
       <div>
         <p class="catalog-page__eyebrow">Discover</p>
-        <h1 class="catalog-page__title">
-          {{ searchQuery ? 'Suchergebnisse' : 'Filme' }}
-        </h1>
-        <p class="catalog-page__subtitle">
-          {{
-            searchQuery
-                ? `Ergebnisse für „${searchQuery}“`
-                : 'Durchsuche trendende, beliebte und top-bewertete Filme in einem moderneren Katalog.'
-          }}
-        </p>
       </div>
 
       <div class="catalog-page__meta">
@@ -25,15 +44,52 @@
       </div>
     </div>
 
-    <div class="catalog-page__toolbar">
-      <DiscoverFilters
-          :media="'movie'"
-          :category="category"
-          :genre-id="selectedGenre"
-          :genres="genres"
-          @category-change="handleCategoryChange"
-          @genre-change="handleGenreChange"
-      />
+    <div v-if="!searchQuery" class="catalog-page__toolbar">
+      <div class="category-rail">
+        <button
+            v-if="previousCategory"
+            type="button"
+            class="category-peek category-peek--prev"
+            @click="goToPreviousCategory"
+        >
+          <span class="category-peek__label">{{ previousCategory.label }}</span>
+        </button>
+
+        <button
+            class="category-focus"
+        >
+          <span class="category-focus__label">{{ activeCategoryLabel }}</span>
+        </button>
+
+        <button
+            v-if="nextCategory"
+            type="button"
+            class="category-peek category-peek--next"
+            @click="goToNextCategory"
+        >
+          <span class="category-peek__label">{{ nextCategory.label }}</span>
+        </button>
+      </div>
+
+      <div class="catalog-page__genre">
+        <label class="genre-field">
+          <span class="genre-field__label">Genre</span>
+          <select
+              :value="selectedGenre ?? ''"
+              class="genre-field__input"
+              @change="handleGenreChange($event.target.value || undefined)"
+          >
+            <option value="">Alle Genres</option>
+            <option
+                v-for="genre in genres"
+                :key="genre.id"
+                :value="genre.id"
+            >
+              {{ genre.name }}
+            </option>
+          </select>
+        </label>
+      </div>
     </div>
 
     <div v-if="isLoading" class="catalog-page__state">
@@ -62,17 +118,20 @@
 
 <script>
 import HeroSpotlight from '../components/HeroSpotlight.vue'
-import DiscoverFilters from '../components/DiscoverFilters.vue'
 import PaginationBar from '../components/PaginationBar.vue'
 import MediaGrid from '../components/MediaGrid.vue'
-import { fetchGenres, fetchList, searchMulti } from '../lib/tmdb.js'
-
+import {
+  fetchGenres,
+  fetchList,
+  searchMulti,
+  fetchSpotlightCandidates,
+  getHomeMovieCategories,
+} from '../lib/tmdb.js'
 
 export default {
   name: 'MovieOverview',
   components: {
     HeroSpotlight,
-    DiscoverFilters,
     PaginationBar,
     MediaGrid,
   },
@@ -80,7 +139,8 @@ export default {
     return {
       movies: [],
       genres: [],
-      category: 'trending',
+      categories: getHomeMovieCategories(),
+      category: 'recent_quality',
       selectedGenre: undefined,
       page: 1,
       totalPages: 1,
@@ -88,11 +148,44 @@ export default {
       isLoading: false,
       error: '',
       searchQuery: this.$route.query.search || '',
+      spotlightItems: [],
+      activeSpotlightIndex: 0,
+      spotlightInterval: null,
     }
   },
   computed: {
-    heroItem() {
-      return this.searchQuery ? this.movies[0] || null : this.movies[0] || null
+    activeSpotlight() {
+      return this.spotlightItems[this.activeSpotlightIndex] || null
+    },
+    activeCategoryIndex() {
+      return this.categories.findIndex((item) => item.key === this.category)
+    },
+    activeCategory() {
+      return this.categories[this.activeCategoryIndex] || this.categories[0]
+    },
+    activeCategoryLabel() {
+      return this.activeCategory?.label || 'Filme'
+    },
+    activeCategoryDescription() {
+      const descriptions = {
+        recent_quality: 'Relativ neue Filme mit starker Bewertung und genug Relevanz, damit nicht jeder Zufallstreffer oben landet.',
+        top_rated: 'Filme mit hoher Bewertung und vielen Stimmen, damit die Liste wirklich Substanz hat.',
+        most_voted: 'Titel, die besonders viele Bewertungen gesammelt haben und dadurch kulturell sichtbar geworden sind.',
+        popular_now: 'Aktuell populäre Filme mit solider Resonanz und zeitnaher Relevanz.',
+        cinema_pick: 'Große Produktionen mit starker Außenwirkung und breiter Aufmerksamkeit.',
+      }
+
+      return descriptions[this.category] || 'Kuratiert nach Qualität, Relevanz und Resonanz.'
+    },
+    previousCategory() {
+      if (!this.categories.length) return null
+      const index = (this.activeCategoryIndex - 1 + this.categories.length) % this.categories.length
+      return this.categories[index]
+    },
+    nextCategory() {
+      if (!this.categories.length) return null
+      const index = (this.activeCategoryIndex + 1) % this.categories.length
+      return this.categories[index]
     },
     totalResultsLabel() {
       if (this.totalResults) {
@@ -104,7 +197,12 @@ export default {
   },
   async mounted() {
     await this.loadGenres()
+    await this.loadSpotlights()
     await this.loadMovies()
+    this.startSpotlightRotation()
+  },
+  beforeUnmount() {
+    this.stopSpotlightRotation()
   },
   watch: {
     '$route.query.search': {
@@ -123,6 +221,16 @@ export default {
       } catch (error) {
         console.error('Fehler beim Laden der Genres:', error)
         this.genres = []
+      }
+    },
+
+    async loadSpotlights() {
+      try {
+        this.spotlightItems = await fetchSpotlightCandidates('movie', 5)
+        this.activeSpotlightIndex = 0
+      } catch (error) {
+        console.error('Fehler beim Laden der Spotlights:', error)
+        this.spotlightItems = []
       }
     },
 
@@ -159,14 +267,67 @@ export default {
       }
     },
 
-    async handleCategoryChange(value) {
+    startSpotlightRotation() {
+      this.stopSpotlightRotation()
+
+      if (this.spotlightItems.length <= 1) return
+
+      this.spotlightInterval = window.setInterval(() => {
+        this.goToNextSpotlight()
+      }, 6500)
+    },
+
+    stopSpotlightRotation() {
+      if (this.spotlightInterval) {
+        clearInterval(this.spotlightInterval)
+        this.spotlightInterval = null
+      }
+    },
+
+    pauseSpotlight() {
+      this.stopSpotlightRotation()
+    },
+
+    resumeSpotlight() {
+      this.startSpotlightRotation()
+    },
+
+    setSpotlight(index) {
+      this.activeSpotlightIndex = index
+      this.startSpotlightRotation()
+    },
+
+    goToPreviousSpotlight() {
+      if (!this.spotlightItems.length) return
+      this.activeSpotlightIndex =
+          (this.activeSpotlightIndex - 1 + this.spotlightItems.length) % this.spotlightItems.length
+      this.startSpotlightRotation()
+    },
+
+    goToNextSpotlight() {
+      if (!this.spotlightItems.length) return
+      this.activeSpotlightIndex =
+          (this.activeSpotlightIndex + 1) % this.spotlightItems.length
+    },
+
+    async setCategory(value) {
       this.category = value
       this.page = 1
       await this.loadMovies()
     },
 
+    async goToPreviousCategory() {
+      if (!this.previousCategory) return
+      await this.setCategory(this.previousCategory.key)
+    },
+
+    async goToNextCategory() {
+      if (!this.nextCategory) return
+      await this.setCategory(this.nextCategory.key)
+    },
+
     async handleGenreChange(value) {
-      this.selectedGenre = value
+      this.selectedGenre = value ? Number(value) : undefined
       this.page = 1
       await this.loadMovies()
     },
@@ -182,11 +343,11 @@ export default {
 
 <style scoped>
 .catalog-page {
-  width: min(100% - 32px, 1280px);
+  width: min(100% - 16px, 1280px);
   margin: 0 auto;
-  padding: 1.5rem 0 3rem;
+  padding: 1rem 0 2.5rem;
   display: grid;
-  gap: 1.5rem;
+  gap: 1.1rem;
 }
 
 .catalog-page__hero,
@@ -202,13 +363,13 @@ export default {
   flex-wrap: wrap;
   align-items: end;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.9rem;
 }
 
 .catalog-page__eyebrow {
   margin: 0 0 0.35rem;
   color: var(--primary);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -216,40 +377,176 @@ export default {
 
 .catalog-page__title {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 3.5rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
+  font-size: clamp(1.7rem, 7vw, 3.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
 }
 
 .catalog-page__subtitle {
-  margin: 0.75rem 0 0;
+  margin: 0.55rem 0 0;
   color: var(--muted-foreground);
-  max-width: 46rem;
-  line-height: 1.7;
+  max-width: 44rem;
+  line-height: 1.58;
+  font-size: 0.92rem;
 }
 
 .catalog-page__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.65rem;
   color: var(--muted-foreground);
-  font-size: 0.92rem;
+  font-size: 0.84rem;
 }
 
 .catalog-page__toolbar {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.spotlight-shell {
+  position: relative;
+}
+
+.spotlight-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 12, 20, 0.42);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  z-index: 2;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.spotlight-nav--prev {
+  left: 0.85rem;
+}
+
+.spotlight-nav--next {
+  right: 0.85rem;
+}
+
+.spotlight-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 0.9rem;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.45rem;
+  z-index: 2;
+}
+
+.spotlight-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.spotlight-dot--active {
+  background: white;
+  transform: scale(1.15);
+}
+
+.category-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.15fr) minmax(0, 0.8fr);
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
+.category-focus,
+.category-peek {
+  min-height: 4.4rem;
+  border-radius: 1.15rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
   background: var(--card);
+  color: var(--foreground);
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  display: grid;
+  gap: 0.15rem;
+  align-content: center;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.category-focus {
+  border-color: color-mix(in oklab, var(--primary) 34%, var(--border));
+  background: color-mix(in oklab, var(--primary) 10%, var(--card));
   box-shadow: var(--shadow-sm);
-  padding: 1rem;
+}
+
+.category-focus__eyebrow,
+.category-peek__hint {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  font-weight: 700;
+}
+
+.category-focus__label,
+.category-peek__label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.category-peek {
+  opacity: 0.82;
+}
+
+.category-peek--prev {
+  text-align: left;
+}
+
+.category-peek--next {
+  text-align: right;
+}
+
+.catalog-page__genre {
+  display: flex;
+}
+
+.genre-field {
+  display: grid;
+  gap: 0.35rem;
+  width: min(100%, 18rem);
+}
+
+.genre-field__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  font-weight: 700;
+}
+
+.genre-field__input {
+  min-height: 2.7rem;
+  border-radius: 0.95rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 0 0.85rem;
 }
 
 .catalog-page__state {
   display: grid;
   place-items: center;
-  min-height: 12rem;
+  min-height: 11rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: 1.25rem;
   background: var(--card);
   color: var(--muted-foreground);
 }
@@ -258,14 +555,64 @@ export default {
   color: #ff8f8f;
 }
 
+.spotlight-fade-enter-active,
+.spotlight-fade-leave-active {
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.spotlight-fade-enter-from,
+.spotlight-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (max-width: 767px) {
+  .category-rail {
+    grid-template-columns: 0.72fr 1fr 0.72fr;
+    gap: 0.45rem;
+  }
+
+  .category-focus,
+  .category-peek {
+    min-height: 4rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: 1rem;
+  }
+
+  .category-peek__label,
+  .category-focus__label {
+    font-size: 0.86rem;
+  }
+
+  .spotlight-nav {
+    width: 2.3rem;
+    height: 2.3rem;
+    font-size: 1.3rem;
+  }
+
+  .spotlight-nav--prev {
+    left: 0.65rem;
+  }
+
+  .spotlight-nav--next {
+    right: 0.65rem;
+  }
+}
+
 @media (min-width: 768px) {
   .catalog-page {
-    padding: 2rem 0 4rem;
-    gap: 2rem;
+    width: min(100% - 32px, 1280px);
+    padding: 1.5rem 0 4rem;
+    gap: 1.5rem;
   }
 
   .catalog-page__toolbar {
-    padding: 1.25rem;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+
+  .genre-field {
+    width: 16rem;
   }
 }
 </style>
