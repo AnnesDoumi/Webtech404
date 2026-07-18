@@ -1,48 +1,22 @@
 <template>
   <header class="app-header">
     <div class="app-header__inner">
-      <div class="app-header__top">
-        <router-link to="/" class="brand" aria-label="Startseite">
-          <span class="brand__mark">C</span>
-          <span>CineScope</span>
-        </router-link>
-
-        <div class="header-actions desktop-auth" v-if="!isMobileView">
-          <span v-if="isLoggedIn" class="user-pill">{{ username }}</span>
-
-          <router-link v-if="!isLoggedIn" to="/login" class="nav-action">
-            Login
-          </router-link>
-
-          <router-link v-if="!isLoggedIn" to="/register" class="nav-action">
-            Registrieren
-          </router-link>
-
-          <button v-if="isLoggedIn" class="nav-action" @click="logout">
-            Logout
-          </button>
+      <router-link to="/" class="brand" aria-label="Startseite">
+        <span class="brand__mark">C</span>
+        <div class="brand__text">
+          <span class="brand__name">CineScope</span>
+          <span class="brand__meta">Movies & Series</span>
         </div>
+      </router-link>
 
-        <button
-            class="hamburger-button nav-action"
-            @click="toggleMobileMenu"
-            :aria-expanded="isMobileMenuOpen"
-            aria-label="Menü öffnen"
-        >
-          {{ isMobileMenuOpen ? '✕' : '☰' }}
-        </button>
-      </div>
+      <nav v-if="!isMobileView" class="primary-nav" aria-label="Hauptnavigation">
+        <router-link to="/">Filme</router-link>
+        <router-link to="/series">Serien</router-link>
+        <router-link to="/favorites">Favoriten</router-link>
+        <router-link to="/ranking">Rangliste</router-link>
+      </nav>
 
-      <div class="app-header__bottom" v-if="!isMobileView">
-        <nav class="navigation-links" aria-label="Hauptnavigation">
-          <router-link to="/">Filme</router-link>
-          <router-link to="/series">Serien</router-link>
-          <router-link to="/favorites">Meine Favoriten</router-link>
-          <router-link to="/ranking">Rangliste</router-link>
-          <router-link to="/kontakt">Kontakt</router-link>
-          <router-link to="/impressum">Impressum</router-link>
-        </nav>
-
+      <div class="header-tools" v-if="!isMobileView">
         <div class="header-search" v-if="showSearch">
           <input
               type="text"
@@ -52,67 +26,114 @@
               class="search-input"
           />
         </div>
+
+        <div class="auth-group">
+          <span v-if="isLoggedIn" class="user-pill">{{ username }}</span>
+
+          <router-link v-if="!isLoggedIn" to="/login" class="ghost-btn">
+            Login
+          </router-link>
+
+          <router-link v-if="!isLoggedIn" to="/register" class="solid-btn">
+            Registrieren
+          </router-link>
+
+          <button v-if="isLoggedIn" class="ghost-btn" @click="logout">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div v-if="isMobileView" class="mobile-actions">
+        <button
+            v-if="showSearch"
+            class="icon-btn"
+            type="button"
+            @click="toggleMobileSearch"
+            aria-label="Suche öffnen"
+        >
+          🔍
+        </button>
+
+        <button
+            class="icon-btn"
+            type="button"
+            @click="toggleMobileMenu"
+            :aria-expanded="isMobileMenuOpen"
+            aria-label="Menü öffnen"
+        >
+          {{ isMobileMenuOpen ? '✕' : '☰' }}
+        </button>
       </div>
     </div>
 
-    <transition name="fade-slide">
-      <div class="mobile-menu" v-if="isMobileMenuOpen">
-        <div class="mobile-menu__inner">
-          <div class="mobile-menu__top">
-            <span class="brand">
-              <span class="brand__mark">C</span>
-              <span>Menü</span>
-            </span>
+    <div v-if="isMobileView && isMobileSearchOpen && showSearch" class="mobile-search">
+      <div class="mobile-search__inner">
+        <input
+            type="text"
+            v-model="searchQuery"
+            :placeholder="searchPlaceholder"
+            @input="updateSearchQuery"
+            class="search-input"
+        />
+      </div>
+    </div>
 
-            <button class="nav-action" @click="closeMobileMenu">
-              Schließen
-            </button>
-          </div>
+    <transition name="drawer-shell">
+      <div
+          v-if="isMobileMenuOpen"
+          class="mobile-drawer"
+          @click="closeAllOverlays"
+      >
+        <transition name="drawer-panel">
+          <aside
+              v-if="isMobileMenuOpen"
+              class="mobile-drawer__panel"
+              @click.stop
+              aria-label="Mobiles Menü"
+          >
+            <div class="mobile-drawer__header">
+              <div class="mobile-drawer__brand">
+                <span class="mobile-drawer__brand-mark">C</span>
+                <div class="mobile-drawer__brand-text">
+                  <span class="mobile-drawer__eyebrow">Navigation</span>
+                  <span class="mobile-drawer__title">CineScope</span>
+                </div>
+              </div>
 
-          <input
-              v-if="showSearch"
-              type="text"
-              v-model="searchQuery"
-              :placeholder="searchPlaceholder"
-              @input="updateSearchQuery"
-              class="search-input"
-          />
+              <button
+                  type="button"
+                  class="mobile-drawer__close"
+                  @click="closeAllOverlays"
+                  aria-label="Menü schließen"
+              >
+                ✕
+              </button>
+            </div>
 
-          <nav class="mobile-menu__nav">
-            <router-link @click="closeMobileMenu" to="/">Filme</router-link>
-            <router-link @click="closeMobileMenu" to="/series">Serien</router-link>
-            <router-link @click="closeMobileMenu" to="/favorites">Meine Favoriten</router-link>
-            <router-link @click="closeMobileMenu" to="/ranking">Rangliste</router-link>
-            <router-link @click="closeMobileMenu" to="/kontakt">Kontakt</router-link>
-            <router-link @click="closeMobileMenu" to="/impressum">Impressum</router-link>
-          </nav>
+            <div class="mobile-drawer__section">
+              <span class="mobile-drawer__label">Navigation</span>
+              <router-link @click="closeAllOverlays" to="/">Filme</router-link>
+              <router-link @click="closeAllOverlays" to="/series">Serien</router-link>
+              <router-link @click="closeAllOverlays" to="/favorites">Favoriten</router-link>
+              <router-link @click="closeAllOverlays" to="/ranking">Rangliste</router-link>
+            </div>
 
-          <div class="mobile-menu__auth">
-            <span v-if="isLoggedIn" class="user-pill">{{ username }}</span>
+            <div class="mobile-drawer__section">
+              <span class="mobile-drawer__label">Account</span>
+              <span v-if="isLoggedIn" class="user-pill user-pill--mobile">{{ username }}</span>
+              <router-link v-if="!isLoggedIn" @click="closeAllOverlays" to="/login">Login</router-link>
+              <router-link v-if="!isLoggedIn" @click="closeAllOverlays" to="/register">Registrieren</router-link>
+              <button v-if="isLoggedIn" class="drawer-button" @click="logout">Logout</button>
+            </div>
 
-            <router-link
-                v-if="!isLoggedIn"
-                @click="closeMobileMenu"
-                to="/login"
-                class="nav-action"
-            >
-              Login
-            </router-link>
-
-            <router-link
-                v-if="!isLoggedIn"
-                @click="closeMobileMenu"
-                to="/register"
-                class="nav-action"
-            >
-              Registrieren
-            </router-link>
-
-            <button v-if="isLoggedIn" class="nav-action" @click="logout">
-              Logout
-            </button>
-          </div>
-        </div>
+            <div class="mobile-drawer__section mobile-drawer__section--secondary">
+              <span class="mobile-drawer__label">Mehr</span>
+              <router-link @click="closeAllOverlays" to="/kontakt">Kontakt</router-link>
+              <router-link @click="closeAllOverlays" to="/impressum">Impressum</router-link>
+            </div>
+          </aside>
+        </transition>
       </div>
     </transition>
   </header>
@@ -132,7 +153,8 @@ export default {
     const username = ref(localStorage.getItem('username') || '')
     const searchQuery = ref(typeof route.query.search === 'string' ? route.query.search : '')
     const isMobileMenuOpen = ref(false)
-    const isMobileView = ref(window.innerWidth <= 920)
+    const isMobileSearchOpen = ref(false)
+    const isMobileView = ref(window.innerWidth <= 980)
     const searchDebounce = ref(null)
 
     const searchableRoutes = ['home', 'series-overview']
@@ -170,21 +192,34 @@ export default {
       localStorage.removeItem('token')
       localStorage.removeItem('username')
       syncAuthState()
-      isMobileMenuOpen.value = false
+      closeAllOverlays()
       router.push('/')
     }
 
     const toggleMobileMenu = () => {
       isMobileMenuOpen.value = !isMobileMenuOpen.value
+      if (isMobileMenuOpen.value) {
+        isMobileSearchOpen.value = false
+      }
     }
 
-    const closeMobileMenu = () => {
+    const toggleMobileSearch = () => {
+      isMobileSearchOpen.value = !isMobileSearchOpen.value
+      if (isMobileSearchOpen.value) {
+        isMobileMenuOpen.value = false
+      }
+    }
+
+    const closeAllOverlays = () => {
       isMobileMenuOpen.value = false
+      isMobileSearchOpen.value = false
     }
 
     const handleResize = () => {
-      isMobileView.value = window.innerWidth <= 920
-      if (!isMobileView.value) closeMobileMenu()
+      isMobileView.value = window.innerWidth <= 980
+      if (!isMobileView.value) {
+        closeAllOverlays()
+      }
     }
 
     watch(
@@ -195,9 +230,10 @@ export default {
 
           if (!showSearch.value) {
             searchQuery.value = ''
+            isMobileSearchOpen.value = false
           }
 
-          closeMobileMenu()
+          closeAllOverlays()
         },
     )
 
@@ -218,128 +254,127 @@ export default {
       username,
       searchQuery,
       isMobileMenuOpen,
+      isMobileSearchOpen,
       isMobileView,
-      searchPlaceholder,
       showSearch,
-      logout,
+      searchPlaceholder,
       updateSearchQuery,
+      logout,
       toggleMobileMenu,
-      closeMobileMenu,
+      toggleMobileSearch,
+      closeAllOverlays,
     }
   },
 }
 </script>
 
 <style scoped>
-.hamburger-button {
-  display: none;
-}
-
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 1100;
+  z-index: 1200;
   backdrop-filter: blur(18px);
-  background: color-mix(in oklab, var(--background) 82%, transparent);
+  background: color-mix(in oklab, var(--background) 86%, transparent);
   border-bottom: 1px solid var(--border);
 }
 
+
 .app-header__inner {
-  width: min(100% - 32px, 1280px);
+  width: min(100% - 24px, 1240px);
+  min-height: 72px;
   margin: 0 auto;
-  padding: 1rem 0;
   display: grid;
-  gap: 1rem;
-}
-
-.app-header__top,
-.app-header__bottom,
-.header-actions,
-.header-search,
-.mobile-menu__top,
-.mobile-menu__nav,
-.mobile-menu__auth {
-  display: flex;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: var(--space-3, 0.75rem);
-}
-
-.app-header__top {
-  justify-content: space-between;
-}
-
-.app-header__bottom {
-  justify-content: space-between;
-  gap: 1.25rem;
-  width: 100%;
+  gap: 1rem;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  color: var(--foreground);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  gap: 0.85rem;
   text-decoration: none;
+  color: var(--foreground);
+  min-width: 0;
 }
 
 .brand__mark {
-  width: 2.2rem;
-  height: 2.2rem;
-  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
   place-items: center;
-  border-radius: 0.8rem;
+  border-radius: 0.85rem;
   background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 60%, white));
   color: var(--primary-foreground);
+  font-weight: 800;
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
-.navigation-links {
+.brand__text {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.navigation-links a,
-.nav-action {
+.brand__name {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.brand__meta {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.primary-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.primary-nav a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 2.5rem;
-  padding: 0 0.95rem;
+  padding: 0 0.85rem;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--foreground);
+  color: var(--muted-foreground);
   text-decoration: none;
   font-weight: 600;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
-.navigation-links a.router-link-active {
+.primary-nav a.router-link-active {
   background: color-mix(in oklab, var(--primary) 14%, var(--card));
-  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
   color: var(--primary);
 }
 
-.navigation-links a:hover,
-.nav-action:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in oklab, var(--border) 50%, var(--foreground));
+.primary-nav a:hover {
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
+  color: var(--foreground);
 }
 
-.header-actions {
+.header-tools {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 .header-search {
-  width: min(100%, 340px);
+  width: 260px;
 }
 
 .search-input {
   width: 100%;
-  min-height: 2.75rem;
+  min-height: 2.65rem;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--card);
@@ -352,77 +387,244 @@ export default {
   color: var(--muted-foreground);
 }
 
+.auth-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .user-pill {
   display: inline-flex;
   align-items: center;
   min-height: 2.5rem;
-  padding: 0 0.95rem;
+  padding: 0 0.9rem;
   border-radius: 999px;
-  color: var(--foreground);
   background: color-mix(in oklab, var(--foreground) 6%, var(--card));
   border: 1px solid var(--border);
+  color: var(--foreground);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.mobile-menu {
+.ghost-btn,
+.solid-btn,
+.icon-btn,
+.drawer-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0 0.9rem;
+  background: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.solid-btn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.mobile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  width: 2.6rem;
+  padding: 0;
+}
+
+.mobile-search {
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 92%, transparent);
+}
+
+.mobile-search__inner {
+  width: min(100% - 24px, 1240px);
+  margin: 0 auto;
+  padding: 0.75rem 0 1rem;
+}
+
+.mobile-drawer {
   position: fixed;
   inset: 0;
+  z-index: 1500;
   background: rgba(6, 10, 18, 0.62);
-  backdrop-filter: blur(10px);
-  z-index: 1200;
-  display: grid;
-  justify-items: end;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.mobile-menu__inner {
-  width: min(100%, 360px);
-  min-height: 100dvh;
-  background: var(--background);
-  border-left: 1px solid var(--border);
-  padding: 1.25rem;
+
+.mobile-drawer__section {
   display: grid;
+  gap: 0.45rem;
+}
+
+.mobile-drawer__section--secondary {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+
+.mobile-drawer__panel {
+  width: min(88vw, 360px);
+  height: 100dvh;
+  background: linear-gradient(180deg, #0e1830 0%, #0b1220 100%);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.9rem;
+  display: grid;
+  gap: 1rem;
   align-content: start;
-  gap: 1.25rem;
-  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow:
+      -12px 0 36px rgba(0, 0, 0, 0.28),
+      -2px 0 10px rgba(0, 0, 0, 0.12);
+  opacity: 1;
+  backdrop-filter: none;
 }
 
-.mobile-menu__top {
+.mobile-drawer__header {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.1rem 0 0.4rem;
 }
 
-.mobile-menu__nav,
-.mobile-menu__auth {
+.mobile-drawer__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.mobile-drawer__brand-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.8rem;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(135deg, #1b3a73 0%, #284f9e 100%);
+  box-shadow: 0 8px 24px rgba(34, 74, 150, 0.28);
+  flex-shrink: 0;
+}
+
+.mobile-drawer__brand-text {
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
+  min-width: 0;
 }
 
-.mobile-menu__nav a,
-.mobile-menu__auth .nav-action,
-.mobile-menu__auth button {
-  width: 100%;
-  justify-content: flex-start;
-  text-align: left;
+.mobile-drawer__eyebrow {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.58);
+  line-height: 1;
 }
 
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: opacity 180ms ease, transform 180ms ease;
+.mobile-drawer__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f4f7ff;
+  line-height: 1.1;
 }
 
-.fade-slide-enter-from,
-.fade-slide-leave-to {
+.mobile-drawer__close {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f7ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-drawer__section a,
+.drawer-button,
+.user-pill--mobile {
+  min-height: 2.95rem;
+  padding: 0 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #f4f7ff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-drawer__label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.58);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.drawer-shell-enter-active,
+.drawer-shell-leave-active {
+  transition: opacity 220ms ease;
+}
+
+.drawer-shell-enter-from,
+.drawer-shell-leave-to {
   opacity: 0;
 }
 
-@media (max-width: 920px) {
-  .desktop-auth,
-  .app-header__bottom {
-    display: none;
+.drawer-panel-enter-active,
+.drawer-panel-leave-active {
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-panel-enter-from,
+.drawer-panel-leave-to {
+  transform: translateX(100%);
+}
+
+@media (max-width: 979px) {
+  .app-header__inner {
+    grid-template-columns: 1fr auto;
+    min-height: 68px;
   }
 
-  .hamburger-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .brand__meta {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-header__inner {
+    width: min(100% - 16px, 1240px);
+  }
+
+  .brand__name {
+    font-size: 0.98rem;
+  }
+
+  .brand__mark {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.75rem;
   }
 }
 </style>
