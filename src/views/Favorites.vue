@@ -69,44 +69,6 @@
         </div>
       </section>
 
-      <section class="favorites-categories panel">
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">Organisation</p>
-            <h2>Kategorien</h2>
-          </div>
-        </div>
-
-        <div v-if="categories.length" class="category-list">
-          <article v-for="category in categories" :key="category.id" class="category-pill">
-            <router-link
-                :to="{ name: 'category-detail', params: { id: category.id } }"
-                class="category-pill__link"
-            >
-              {{ category.name }}
-              <span>{{ category.count }}</span>
-            </router-link>
-            <button class="icon-button" @click="deleteCategory(category.id)" aria-label="Kategorie löschen">
-              🗑
-            </button>
-          </article>
-        </div>
-
-        <div v-else class="inline-empty">
-          Noch keine Kategorien vorhanden.
-        </div>
-
-        <div class="category-create">
-          <input
-              type="text"
-              v-model="newCategoryName"
-              placeholder="Neue Kategorie hinzufügen"
-              class="toolbar-input"
-          />
-          <button class="primary-button" @click="addCategory">Hinzufügen</button>
-        </div>
-      </section>
-
       <template v-if="!favorites.length && !seriesFavorites.length">
         <section class="panel empty-state">
           <div class="empty-state__icon">♡</div>
