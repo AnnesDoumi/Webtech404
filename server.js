@@ -1,74 +1,76 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import path from 'path';
-import authRoutes from './api/auth.js';
-import favoritesRoutes from './api/favorites.js';
-import foldersRoutes from './api/folders.js';
-import seriesFavoritesRouter from './api/seriesFavorites.js';
-import favoritesCategoriesRoutes from './api/favoritesCategories.js'; // STELLE SICHER, DASS DAS IMPORTIERT IST!
+import express from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
+import path from 'path'
+import fs from 'fs'
 
-dotenv.config();
+import authRoutes from './api/auth.js'
+import favoritesRoutes from './api/favorites.js'
+import foldersRoutes from './api/folders.js'
+import seriesFavoritesRouter from './api/seriesFavorites.js'
+import favoritesCategoriesRoutes from './api/favoritesCategories.js'
 
-const app = express();
-app.use(express.json());
+dotenv.config()
 
-app.use(cors({
-    origin: ['https://webtech404.vercel.app', 'http://localhost:5173']
-}));
+const app = express()
+const __dirname = path.resolve()
 
-// API-Routen verwenden
-app.use('/api/auth', authRoutes);
-app.use('/api/favorites', favoritesRoutes);
-app.use('/api/folders', foldersRoutes);
-app.use('/api/series-favorites', seriesFavoritesRouter);
-app.use('/api/favoritesCategories', favoritesCategoriesRoutes);
+const allowedOrigins = [
+    'https://webtech404.vercel.app',
+    'http://localhost:5173',
+]
 
-// Statische Dateien bereitstellen
-const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, 'dist')));
+const corsOptions = {
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true)
+        }
+        return callback(new Error('CORS nicht erlaubt für diese Origin'))
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+}
 
-// Setze der MIME-Type für JavaScript-Dateien
+app.use(express.json())
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
+
+app.use('/api/auth', authRoutes)
+app.use('/api/favorites', favoritesRoutes)
+app.use('/api/folders', foldersRoutes)
+app.use('/api/series-favorites', seriesFavoritesRouter)
+app.use('/api/favoritesCategories', favoritesCategoriesRoutes)
+
 app.use((req, res, next) => {
     if (req.path.endsWith('.js')) {
-        res.type('application/javascript');
+        res.type('application/javascript')
     } else if (req.path.endsWith('.css')) {
-        res.type('text/css');
+        res.type('text/css')
     }
-    next();
-});
+    next()
+})
+
+app.use(express.static(path.join(__dirname, 'dist')))
 
 app.get('*', (req, res) => {
     if (req.path.startsWith('/assets')) {
-        const filePath = path.join(__dirname, 'dist', req.path);
+        const filePath = path.join(__dirname, 'dist', req.path)
+
         if (fs.existsSync(filePath)) {
-            res.sendFile(filePath);
-            return;
+            return res.sendFile(filePath)
         }
     }
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
 
+    return res.sendFile(path.join(__dirname, 'dist', 'index.html'))
+})
 
+export default app
 
-app.use((req, res, next) => {
-    if (req.path.endsWith('.js')) {
-        res.type('application/javascript');
-    } else if (req.path.endsWith('.css')) {
-        res.type('text/css');
-    }
-    next();
-});
-
-
-
-// Export für Vercel
-export default app;
-
-// Server für lokale Entwicklung
 if (process.env.NODE_ENV !== 'production') {
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 5001
+
     app.listen(PORT, () => {
-        console.log(`Server läuft lokal auf Port ${PORT}`);
-    });
+        console.log(`Server läuft lokal auf http://localhost:${PORT}`)
+    })
 }
