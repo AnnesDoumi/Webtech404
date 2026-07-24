@@ -375,21 +375,6 @@ export default {
   text-transform: uppercase;
 }
 
-.catalog-page__title {
-  margin: 0;
-  font-size: clamp(1.7rem, 7vw, 3.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
-}
-
-.catalog-page__subtitle {
-  margin: 0.55rem 0 0;
-  color: var(--muted-foreground);
-  max-width: 44rem;
-  line-height: 1.58;
-  font-size: 0.92rem;
-}
-
 .catalog-page__meta {
   display: flex;
   flex-wrap: wrap;
@@ -432,30 +417,6 @@ export default {
 
 .spotlight-nav--next {
   right: 0.85rem;
-}
-
-.spotlight-dots {
-  position: absolute;
-  left: 50%;
-  bottom: 0.9rem;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.45rem;
-  z-index: 2;
-}
-
-.spotlight-dot {
-  width: 0.65rem;
-  height: 0.65rem;
-  border-radius: 999px;
-  border: none;
-  background: rgba(255, 255, 255, 0.35);
-  cursor: pointer;
-}
-
-.spotlight-dot--active {
-  background: white;
-  transform: scale(1.15);
 }
 
 .category-rail {
@@ -585,17 +546,21 @@ export default {
   }
 
   .spotlight-nav {
-    width: 2.3rem;
-    height: 2.3rem;
-    font-size: 1.3rem;
+    width: 2.45rem;
+    height: 2.45rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(8, 12, 20, 0.34);
+    color: white;
+    backdrop-filter: blur(10px);
   }
 
   .spotlight-nav--prev {
-    left: 0.65rem;
+    left: 0.2rem;
   }
 
   .spotlight-nav--next {
-    right: 0.65rem;
+    right: 0.2rem;
   }
 }
 

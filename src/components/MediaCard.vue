@@ -17,8 +17,8 @@
       </span>
 
       <span class="media-card__type">
-        {{ item.mediaType === 'tv' ? 'Serie' : 'Film' }}
-      </span>
+  {{ item.rankLabel || (item.mediaType === 'tv' ? 'Serie' : 'Film') }}
+</span>
     </div>
 
     <div class="media-card__body">
@@ -97,30 +97,35 @@ export default {
 }
 
 .media-card__badge,
-.media-card__type {
-  position: absolute;
-  top: 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--background) 75%, transparent);
-  backdrop-filter: blur(10px);
-  padding: 0.3rem 0.55rem;
-  font-size: 0.72rem;
-  font-weight: 700;
+.media-card__type{
+  position:absolute;
+  top:.75rem;
+  display:inline-flex;
+  align-items:center;
+  gap:.25rem;
+  min-height:32px;
+  padding:.38rem .65rem;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(7,12,20,.78);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 8px 20px rgba(0,0,0,.28);
+  font-size:.76rem;
+  font-weight:800;
+  line-height:1;
+  text-shadow:0 1px 1px rgba(0,0,0,.35);
 }
 
-.media-card__badge {
-  left: 0.75rem;
-  color: var(--foreground);
+.media-card__badge{
+  left:.75rem;
+  color:#fff;
 }
 
-.media-card__type {
-  right: 0.75rem;
-  color: var(--muted-foreground);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.media-card__type{
+  right:.75rem;
+  color:#fff;
+  letter-spacing:.06em;
 }
 
 .media-card__body {

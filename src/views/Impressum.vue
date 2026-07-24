@@ -3,15 +3,15 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Impressum</h1>
-        <p class="page-subtitle">Hier kannst du deine rechtlichen Angaben, Kontaktinformationen und Pflichttexte sauber eintragen.</p>
+        <p class="page-subtitle">.</p>
       </div>
     </div>
 
     <div class="panel">
-      <p><strong>Betreiber:</strong> Dein Name oder Firmenname</p>
-      <p><strong>Anschrift:</strong> Straße, Hausnummer, PLZ, Ort</p>
-      <p><strong>E-Mail:</strong> deine@email.de</p>
-      <p><strong>Hinweis:</strong> Ersetze diese Platzhalter durch deine echten rechtlichen Angaben.</p>
+      <p><strong>Betreiber:</strong> Annes Doumi</p>
+      <p><strong>Anschrift:</strong> Gropiusstraße 3, 13357 Berlin</p>
+      <p><strong>E-Mail:</strong> doumi.annes@gmail.com</p>
+      <p><strong>Hinweis:</strong> .</p>
     </div>
   </section>
 </template>
