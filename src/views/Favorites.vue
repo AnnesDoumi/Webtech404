@@ -6,7 +6,7 @@
         <p class="auth-gate__eyebrow">Favoriten</p>
         <h1 class="auth-gate__title">Bitte zuerst einloggen</h1>
         <p class="auth-gate__text">
-          Deine Favoriten, Notizen und Kategorien sind nur verfügbar, wenn du angemeldet bist.
+          Deine Favoriten und Notizen sind nur verfügbar, wenn du angemeldet bist.
         </p>
 
         <div class="auth-gate__actions">
@@ -23,23 +23,25 @@
           <p class="favorites-hero__eyebrow">Library</p>
           <h1 class="favorites-hero__title">Meine Favoriten</h1>
           <p class="favorites-hero__subtitle">
-            Verwalte Filme und Serien, bearbeite Notizen und organisiere deine Sammlung in Kategorien.
+            Verwalte Filme und Serien, filtere deine Sammlung und ergänze persönliche Notizen direkt auf den Karten.
           </p>
         </div>
 
-        <div class="favorites-stats">
-          <article class="stat-card">
-            <span class="stat-card__label">Filme</span>
-            <strong class="stat-card__value">{{ favorites.length }}</strong>
-          </article>
-          <article class="stat-card">
-            <span class="stat-card__label">Serien</span>
-            <strong class="stat-card__value">{{ seriesFavorites.length }}</strong>
-          </article>
-          <article class="stat-card">
-            <span class="stat-card__label">Kategorien</span>
-            <strong class="stat-card__value">{{ categories.length }}</strong>
-          </article>
+        <div class="favorites-stats favorites-stats--single">
+          <div class="stats-panel">
+            <article class="stats-panel__item">
+              <span class="stat-card__label">Filme</span>
+              <strong class="stat-card__value">{{ favorites.length }}</strong>
+            </article>
+            <article class="stats-panel__item">
+              <span class="stat-card__label">Serien</span>
+              <strong class="stat-card__value">{{ seriesFavorites.length }}</strong>
+            </article>
+            <article class="stats-panel__item">
+              <span class="stat-card__label">Gesamt</span>
+              <strong class="stat-card__value">{{ favorites.length + seriesFavorites.length }}</strong>
+            </article>
+          </div>
         </div>
       </header>
 
@@ -74,7 +76,7 @@
           <div class="empty-state__icon">♡</div>
           <h2>Noch keine Favoriten</h2>
           <p>
-            Sobald du Filme oder Serien speicherst, erscheinen sie hier zusammen mit Notizen und Filtern.
+            Sobald du Filme oder Serien speicherst, erscheinen sie hier zusammen mit deinen Notizen.
           </p>
         </section>
       </template>
@@ -104,30 +106,41 @@
                 <div class="favorite-card__body">
                   <h3>{{ element.title }}</h3>
 
-                  <div class="note-box" @dblclick="editNote(element, 'movie')">
-                    <p v-if="!element.isEditing">
-                      {{ element.note?.trim() ? element.note : 'Notiz hinzufügen' }}
-                    </p>
-                    <textarea
-                        v-else
-                        v-model="element.note"
-                        @keyup.enter="saveNote(element, 'movie')"
-                        @blur="cancelEdit(element)"
-                        rows="3"
-                        class="note-input"
-                    ></textarea>
-                  </div>
+                  <div class="note-box" @dblclick="editNote(element)">
+                    <div class="note-box__head">
+                      <span>Notiz</span>
+                      <button
+                          v-if="!element.isEditing"
+                          class="note-edit-button"
+                          type="button"
+                          @click.stop="editNote(element)"
+                      >
+                        Bearbeiten
+                      </button>
+                    </div>
 
-                  <select
-                      v-model="element.selectedCategory"
-                      @change="assignToCategory(element.id, element.selectedCategory, 'movie')"
-                      class="toolbar-select"
-                  >
-                    <option value="">Kategorie wählen</option>
-                    <option v-for="category in categories" :key="category.id" :value="category.id">
-                      {{ category.name }}
-                    </option>
-                  </select>
+                    <p v-if="!element.isEditing">
+                      {{ element.note?.trim() ? element.note : 'Noch keine Notiz hinzugefügt.' }}
+                    </p>
+
+                    <div v-else class="note-editor">
+                      <textarea
+                          v-model="element.note"
+                          rows="4"
+                          class="note-input"
+                          placeholder="Eigene Notiz hinzufügen..."
+                      ></textarea>
+
+                      <div class="note-actions">
+                        <button class="primary-button" type="button" @click="saveNote(element, 'movie')">
+                          Speichern
+                        </button>
+                        <button class="ghost-button" type="button" @click="cancelEdit(element)">
+                          Abbrechen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
                   <button class="danger-button" @click="deleteFavorite(element, 'movie')">
                     Löschen
@@ -162,18 +175,40 @@
                 <div class="favorite-card__body">
                   <h3>{{ element.title }}</h3>
 
-                  <div class="note-box" @dblclick="editNote(element, 'series')">
+                  <div class="note-box" @dblclick="editNote(element)">
+                    <div class="note-box__head">
+                      <span>Notiz</span>
+                      <button
+                          v-if="!element.isEditing"
+                          class="note-edit-button"
+                          type="button"
+                          @click.stop="editNote(element)"
+                      >
+                        Bearbeiten
+                      </button>
+                    </div>
+
                     <p v-if="!element.isEditing">
-                      {{ element.note?.trim() ? element.note : 'Notiz hinzufügen' }}
+                      {{ element.note?.trim() ? element.note : 'Noch keine Notiz hinzugefügt.' }}
                     </p>
-                    <textarea
-                        v-else
-                        v-model="element.note"
-                        @keyup.enter="saveNote(element, 'series')"
-                        @blur="cancelEdit(element)"
-                        rows="3"
-                        class="note-input"
-                    ></textarea>
+
+                    <div v-else class="note-editor">
+                      <textarea
+                          v-model="element.note"
+                          rows="4"
+                          class="note-input"
+                          placeholder="Eigene Notiz hinzufügen..."
+                      ></textarea>
+
+                      <div class="note-actions">
+                        <button class="primary-button" type="button" @click="saveNote(element, 'series')">
+                          Speichern
+                        </button>
+                        <button class="ghost-button" type="button" @click="cancelEdit(element)">
+                          Abbrechen
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <button class="danger-button" @click="deleteFavorite(element, 'series')">
@@ -209,8 +244,6 @@ export default {
       genreFilter: '',
       genres: [],
       draggedMovie: null,
-      categories: [],
-      newCategoryName: '',
       isLoading: false,
     }
   },
@@ -313,7 +346,9 @@ export default {
       const apiKey = import.meta.env.VITE_TMDB_API_KEY
 
       try {
-        const response = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${apiKey}&language=de-DE`)
+        const response = await fetch(
+            `https://api.themoviedb.org/3/${type}/${id}?api_key=${apiKey}&language=de-DE`
+        )
         const data = await response.json()
 
         return {
@@ -328,8 +363,8 @@ export default {
               : data.first_air_date?.split('-')[0] || '',
           genre: data.genres?.map((g) => g.name).join(', ') || '',
           note: note || '',
+          originalNote: note || '',
           isEditing: false,
-          selectedCategory: '',
         }
       } catch (error) {
         console.error('Fehler beim Abrufen der Details:', error)
@@ -341,17 +376,19 @@ export default {
           releaseYear: '',
           genre: '',
           note: note || '',
+          originalNote: note || '',
           isEditing: false,
-          selectedCategory: '',
         }
       }
     },
 
     editNote(item) {
+      item.originalNote = item.note || ''
       item.isEditing = true
     },
 
     cancelEdit(item) {
+      item.note = item.originalNote || ''
       item.isEditing = false
     },
 
@@ -370,82 +407,10 @@ export default {
         })
 
         item.note = note || ''
+        item.originalNote = item.note
         item.isEditing = false
       } catch (error) {
         console.error(`Fehler beim Speichern der Notiz für ${type}:`, error)
-      }
-    },
-
-    async fetchCategories() {
-      if (!this.isLoggedIn) return
-
-      try {
-        const response = await fetch('/api/favoritesCategories', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        this.categories = await response.json()
-      } catch (error) {
-        console.error('Fehler beim Laden der Kategorien:', error)
-        this.categories = []
-      }
-    },
-
-    async addCategory() {
-      if (!this.newCategoryName.trim()) return
-
-      try {
-        const response = await fetch('/api/favoritesCategories', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: JSON.stringify({ name: this.newCategoryName }),
-        })
-
-        if (!response.ok) {
-          console.error('Fehler beim Erstellen der Kategorie:', await response.text())
-          return
-        }
-
-        this.newCategoryName = ''
-        await this.fetchCategories()
-      } catch (error) {
-        console.error('Fehler beim Erstellen der Kategorie:', error)
-      }
-    },
-
-    async deleteCategory(categoryId) {
-      try {
-        await fetch(`/api/favoritesCategories/${categoryId}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        await this.fetchCategories()
-      } catch (error) {
-        console.error('Fehler beim Löschen der Kategorie:', error)
-      }
-    },
-
-    async assignToCategory(favId, categoryId, type = 'movie') {
-      if (!categoryId) return
-
-      try {
-        await fetch(`/api/favoritesCategories/${categoryId}/assign`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: JSON.stringify({ entryId: favId, type }),
-        })
-        await this.fetchFavorites()
-      } catch (error) {
-        console.error('Fehler beim Zuweisen zur Kategorie:', error)
       }
     },
 
@@ -471,7 +436,7 @@ export default {
 
         await this.fetchFavorites()
       } catch (error) {
-        console.error(`Fehler beim Verschieben des Elements:`, error)
+        console.error('Fehler beim Verschieben des Elements:', error)
       } finally {
         this.draggedMovie = null
       }
@@ -507,7 +472,6 @@ export default {
   mounted() {
     if (this.isLoggedIn) {
       this.fetchFavorites()
-      this.fetchCategories()
     }
   },
 }
@@ -578,7 +542,6 @@ export default {
 
 .auth-gate__text,
 .favorites-hero__subtitle,
-.inline-empty,
 .empty-state p {
   color: var(--muted-foreground);
   line-height: 1.6;
@@ -591,12 +554,12 @@ export default {
 .primary-action,
 .primary-button,
 .danger-button,
-.icon-button {
-  min-height: 2.75rem;
+.note-edit-button,
+.ghost-button {
+  min-height: 2.6rem;
   border-radius: 999px;
   font: inherit;
   font-weight: 700;
-  border: none;
   cursor: pointer;
 }
 
@@ -609,6 +572,15 @@ export default {
   background: var(--primary);
   color: var(--primary-foreground);
   text-decoration: none;
+  border: none;
+}
+
+.ghost-button,
+.note-edit-button {
+  padding: 0 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--foreground);
 }
 
 .danger-button {
@@ -618,15 +590,8 @@ export default {
   border: 1px solid rgba(255, 120, 120, 0.16);
 }
 
-.icon-button {
-  width: 2.5rem;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--foreground);
-}
-
 .panel,
-.favorite-card,
-.stat-card {
+.favorite-card {
   border: 1px solid color-mix(in oklab, white 8%, transparent);
   background:
       linear-gradient(180deg, rgba(10, 18, 34, 0.94) 0%, rgba(8, 14, 28, 0.98) 100%);
@@ -649,17 +614,32 @@ export default {
   font-size: clamp(1.9rem, 5vw, 4rem);
 }
 
-.favorites-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+.favorites-stats--single {
+  display: block;
 }
 
-.stat-card {
-  padding: 1rem;
+.stats-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
   border-radius: 1.2rem;
+  border: 1px solid color-mix(in oklab, white 8%, transparent);
+  background:
+      linear-gradient(180deg, rgba(10, 18, 34, 0.94) 0%, rgba(8, 14, 28, 0.98) 100%);
+  box-shadow:
+      0 16px 36px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.stats-panel__item {
+  padding: 1rem;
   display: grid;
   gap: 0.35rem;
+}
+
+.stats-panel__item:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .stat-card__label {
@@ -688,16 +668,6 @@ export default {
   min-width: 0;
 }
 
-.filter-field--search {
-  min-width: 0;
-}
-
-.category-create {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
 .toolbar-input,
 .toolbar-select {
   width: 100%;
@@ -712,73 +682,17 @@ export default {
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
-.toolbar-input::placeholder {
+.toolbar-input::placeholder,
+.note-input::placeholder {
   color: var(--muted-foreground);
 }
 
 .toolbar-input:focus,
-.toolbar-select:focus {
+.toolbar-select:focus,
+.note-input:focus {
   border-color: rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 0 0 3px rgba(120, 160, 255, 0.12);
-}
-
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.section-head h2,
-.empty-state h2 {
-  margin: 0;
-  color: var(--foreground);
-  letter-spacing: -0.03em;
-}
-
-.section-count {
-  min-width: 2.2rem;
-  min-height: 2.2rem;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  color: var(--foreground);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.category-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.category-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.category-pill__link {
-  min-height: 2.5rem;
-  padding: 0 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 999px;
-  text-decoration: none;
-  color: var(--foreground);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.category-pill__link span {
-  color: var(--muted-foreground);
-}
-
-.inline-empty {
-  margin-bottom: 1rem;
 }
 
 .empty-state {
@@ -803,6 +717,31 @@ export default {
 .favorites-section {
   display: grid;
   gap: 0.9rem;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.section-head h2,
+.empty-state h2 {
+  margin: 0;
+  color: var(--foreground);
+  letter-spacing: -0.03em;
+}
+
+.section-count {
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .favorites-grid {
@@ -875,27 +814,55 @@ export default {
 }
 
 .note-box {
-  min-height: 5.5rem;
-  padding: 0.85rem;
+  min-height: 7rem;
+  padding: 0.9rem;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.04);
   color: var(--muted-foreground);
   line-height: 1.55;
-  cursor: text;
+}
+
+.note-box__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.note-box__head span {
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .note-box p {
   margin: 0;
 }
 
+.note-editor {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .note-input {
   width: 100%;
   resize: vertical;
-  border: none;
-  outline: none;
-  background: transparent;
+  min-height: 7rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--foreground);
   font: inherit;
+  outline: none;
+}
+
+.note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 @media (max-width: 900px) {
@@ -905,8 +872,13 @@ export default {
 }
 
 @media (max-width: 767px) {
-  .favorites-stats {
+  .stats-panel {
     grid-template-columns: 1fr;
+  }
+
+  .stats-panel__item:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 }
 
