@@ -44,22 +44,28 @@
       </header>
 
       <section class="favorites-toolbar panel">
-        <div class="search-filter">
-          <input
-              v-model="searchQuery"
-              placeholder="Suche nach Titel, Genre oder Notiz"
-              class="toolbar-input"
-          />
+        <div class="search-filter search-filter--inline">
+          <div class="filter-field filter-field--search">
+            <input
+                v-model="searchQuery"
+                placeholder="Suche nach Titel, Genre oder Notiz"
+                class="toolbar-input"
+            />
+          </div>
 
-          <select v-model="yearFilter" class="toolbar-select">
-            <option value="">Erscheinungsjahr</option>
-            <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
-          </select>
+          <div class="filter-field">
+            <select v-model="yearFilter" class="toolbar-select">
+              <option value="">Erscheinungsjahr</option>
+              <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </div>
 
-          <select v-model="genreFilter" class="toolbar-select">
-            <option value="">Genre</option>
-            <option v-for="genre in genres" :key="genre" :value="genre">{{ genre }}</option>
-          </select>
+          <div class="filter-field">
+            <select v-model="genreFilter" class="toolbar-select">
+              <option value="">Genre</option>
+              <option v-for="genre in genres" :key="genre" :value="genre">{{ genre }}</option>
+            </select>
+          </div>
         </div>
       </section>
 
@@ -709,7 +715,21 @@ export default {
   border-radius: 1.4rem;
 }
 
-.search-filter,
+.search-filter--inline {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(180px, 0.7fr) minmax(180px, 0.7fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.filter-field {
+  min-width: 0;
+}
+
+.filter-field--search {
+  min-width: 0;
+}
+
 .category-create {
   display: flex;
   flex-wrap: wrap;
@@ -718,21 +738,27 @@ export default {
 
 .toolbar-input,
 .toolbar-select {
-  min-height: 2.8rem;
-  padding: 0 0.95rem;
-  border-radius: 999px;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 1rem;
+  border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: var(--foreground);
   font: inherit;
+  outline: none;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
-.toolbar-input {
-  flex: 1 1 260px;
+.toolbar-input::placeholder {
+  color: var(--muted-foreground);
 }
 
-.toolbar-select {
-  min-width: 180px;
+.toolbar-input:focus,
+.toolbar-select:focus {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(120, 160, 255, 0.12);
 }
 
 .section-head {
@@ -908,6 +934,12 @@ export default {
   background: transparent;
   color: var(--foreground);
   font: inherit;
+}
+
+@media (max-width: 900px) {
+  .search-filter--inline {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 767px) {
